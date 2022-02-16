@@ -1,0 +1,6 @@
+{
+  "prettier.trailingComma": "none",
+  "prettier.printWidth": 200,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+}

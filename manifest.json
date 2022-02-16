@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "Hypersearch",
+  "version": "1.0",
+  "description": "Power user browsing tools",
+
+  "icons": {
+    "48": "icons/hypersearch-48.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.google.com/*"],
+      "js": ["scripts/content/psl.js", "scripts/content/hypersearch.js"]
+    }
+  ],
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+
+  "browser_action": {
+    "default_icon": "icons/hypersearch-48.png",
+    "default_title": "hypersearch",
+    "default_popup": "popup/popup.html"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hypersearch@mmyron.com"
+    }
+  }
+}
