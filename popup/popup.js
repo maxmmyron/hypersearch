@@ -1,10 +1,3 @@
-// TODO: error checking and logging ✅
-// TODO: streamlined/refactored code ✅
-// TODO: documentation ✅
-// TODO: settings functionality
-// TODO: totally resetting config ability
-// TODO: refactor to utilize DocumentFragment when creating domain elements
-
 /**
  * configuration for domain list and settings
  */

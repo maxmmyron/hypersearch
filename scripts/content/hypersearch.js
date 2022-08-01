@@ -1,9 +1,3 @@
-// TODO: basic domain hiding functionality ✅
-// TODO: domain pinning ✅
-// TODO: advanced settings parsing (exact & pinning, exact & override, etc.) ✅
-// TODO: multiple search engine support
-// TODO: change storage type to sync
-
 /**
  * Enum for possible actions to perform against an HTMLElement
  * @enum {String}
@@ -115,7 +109,7 @@ const buildDomainActionConfigs = (domainConfigs, searchResults, searchDomains) =
 
       const isStrict = domainConfig.options.strict;
 
-      console.log(`tesing ${testedDomain} against ${testingDomain}; ${isStrict ? "should be exact match" : "exact match not necessary"}`);
+      console.log(`testing ${testedDomain} against ${testingDomain}; ${isStrict ? "should be exact match" : "exact match not necessary"}`);
 
       // check if isStrict is true so we can determine how to test our two domains
       if (isStrict) {
@@ -201,13 +195,12 @@ const handleDomainAction = (actionConfig) => {
  * @param {HTMLElement} searchResultElement element to override existing domain actions
  */
 const overrideDomain = (searchResultElement) => resetStyling(searchResultElement);
+
 /**
  * Removes a searchResult from the search page
  * @param {HTMLElement} searchResultElement element to remove from search results page
  */
-const removeDomain = (searchResultElement) => {
-  searchResultElement.style.display = "none";
-};
+const removeDomain = (searchResultElement) => searchResultElement.style.display = "none";
 
 /**
  * Pins a searchResult to the top of the search page
@@ -247,5 +240,5 @@ browser.runtime.onMessage.addListener((message) => {
   }
 });
 
-// call this on page load, so we automatically update page results
+// automatically update page results on page load
 updatePageResults();
