@@ -1,19 +1,100 @@
 /**
- * configuration for domain list and settings
+ * @file popup.js
  */
-let config = null;
-
-/**************** */
-// helper functions
-/**************** */
 
 /**
- * DEBUG - logs a message to the console via content script if debug is true
- * @param {*} message string to log to console
+ * @typedef {{
+ *  debug: boolean,
+ *  streamlining: {
+ *    shopping: boolean,
+ *    graph: boolean,
+ *    snippets: boolean,
+ *    questions: boolean,
+ *    related: boolean,
+ *    images: boolean,
+ *    videos: boolean,
+ *    definitions: boolean,
+ *  }
+ * }} Settings
  */
-const logDebugMessage = (message) => {
-  console.log(message);
-  config.settings.debug && updateContentScript("log_message", message);
+
+/**
+ * @typedef {{domains: Domain[], settings: Settings}} Config
+ */
+
+/**
+ * @typedef Domain
+ * @property {string} domain - the domain to match with
+ * @property {Object} options - settings for the domain
+ * @property {boolean} options.pinned - whether the domain is pinned to the top
+ * of the search results. If this is checked, the domain will not be removed.
+ * @property {boolean} options.strict - whether the domain should match exactly.
+ * For example, if this is checked, "example.com" will not match
+ * "sub.example.com".
+ * @property {boolean} options.override - whether this domain and its settings
+ * should override the settings of other domains. For example, if
+ * sub.example.com has override and pinned checked, it will override the
+ * settings described in example.com and will not be removed.
+ */
+
+/**
+ * configuration for domain list and settings
+ *
+ * @type {Config}
+ */
+let config = {
+  domains: [],
+  settings: {
+    debug: true,
+    streamlining: {
+      shopping: true,
+      graph: true,
+      snippets: true,
+      questions: true,
+      related: true,
+      images: true,
+      videos: true,
+      definitions: true
+    }
+  }
+};
+
+// update the page with the most up-to-date config when the DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  browser.storage.local.get("config").then(
+    (item) => {
+      if (item.config) config = item.config;
+      updatePage("update", config, rerenderPopup);
+    },
+    (err) => log(err.message)
+  );
+});
+
+/**
+ * sends a new payload to content script
+ * @param {"update" | "log"} type - payload type, specifies function to exec once received
+ * @param {*} payload - payload data
+ * @param {(() => void) | null} cb - optional : function to execute after successful response
+ */
+const updatePage = (type, payload, cb = null) => {
+  // query for active tab
+  browser.tabs
+    .query({ active: true, currentWindow: true })
+    .then((tabs) => {
+      // send a message to the content script
+      browser.tabs
+        .sendMessage(tabs[0].id, {type, payload})
+        .then(() => {
+          // if a callback is provided, execute it after successful response
+          if(cb) cb()
+        })
+        .catch((err) => {
+          if(type != "log") log(err.message);
+        });
+    })
+    .catch((err) => {
+      log(err.message);
+    });
 };
 
 /**************** */
@@ -23,38 +104,35 @@ const logDebugMessage = (message) => {
 /**
  * parses domain input to ensure validity
  * if valid, creates new domain JSON object and updates page
- * @param {*} e
+ * @param {*} e - unused
  */
 const parseDomain = (e) => {
   const domain = document.getElementById("input").value;
 
-  // validate domain structure
   if (!psl.get(domain)) {
-    logDebugMessage("domain is not valid");
-    return null;
+    log("domain is not valid");
+    return;
   }
 
-  // validate domain does not already exist in config
-  if (!config.domains.some((domainObj) => domainObj.domain === domain)) {
-    // create a new JSON object with new domain data
-    const newDomainJSON = {
-      domain: domain,
-      options: {
-        strict: false,
-        pinned: false,
-        override: false
-      }
-    };
+  if (config.domains.some((domainObj) => domainObj.domain === domain)) {
+    log("domain already exists");
+    return;
+  }
 
-    // push to domain array, and update storage and front-end
-    config.domains.push(newDomainJSON);
-    // update page, storage, and popup
-    updateContentScript("update_page", config, updatePopup);
-  } else logDebugMessage("domain already exists");
+  config.domains.push({
+    domain,
+    options: {
+      strict: false,
+      pinned: false,
+      override: false
+    }
+  });
+
+  updatePage("update", config, rerenderPopup);
 };
 
 document.getElementById("input").addEventListener("keyup", (e) => {
-  e.key === "Enter" && parseDomain(e);
+  if(e.key === "Enter") parseDomain(e);
 });
 
 document.getElementById("confirm-input").addEventListener("click", parseDomain);
@@ -65,35 +143,28 @@ document.getElementById("settings-toggle").addEventListener("click", () => {
   document.getElementById("settings-frame").classList.toggle("frame-invisible");
 });
 
-/**************** */
-// domain parsing and handling
-/**************** */
+// *****************************
+// Popup handlers
+// *****************************
 
 /**
  * Creates a new HTMLElement based on domainObject and existing HTML5 template in DOM.
- * @param {Object} domainObject JSON object to fill in domain element content
+ * @param {Domain} domain JSON object to fill in domain element content
  * @returns HTMLElement
  */
-const createDomainElement = (domainObject) => {
-  // get template container & clone
-  const domainTemplate = document.getElementById("domain-template");
-  const domainContainer = domainTemplate.content.firstElementChild.cloneNode(true);
+const createDomainElement = (domain) => {
+  /**
+   * @type {HTMLTemplateElement}
+   */
+  const template = document.getElementById("domain-template");
+  const domainContainer = template.content.firstElementChild.cloneNode(true);
 
-  domainContainer.querySelector(".domain").innerText = domainObject.domain;
+  domainContainer.querySelector(".domain").innerText = domain.domain;
 
-  //const settingsButtonContainer = Array.from(domainContainer.querySelector(".domain-settings"));
-
-  for (const option in domainObject.options) {
-    if (domainObject.options[option]) domainContainer.querySelector(`button[data-settings-type="${option}"]`).classList.add("button-toggled");
+  for (const option in domain.options) {
+    if (domain.options[option]) domainContainer.querySelector(`button[data-settings-type="${option}"]`).classList.add("button-toggled");
   }
 
-  // Array.from(domainContainer.querySelector(".domain-settings > button[data-settings-type]")).forEach((settingsButton, i) => {
-  //   // check if domain JSON object has any settings toggled, and add respective class if so
-  //   logDebugMessage(domainObject.options);
-  //   if (domainObject.options[settingsButton.getAttribute("data-settings-type")]) settingsButton.classList.add("button-toggled");
-  // });
-
-  // return new HTMLElement
   return domainContainer;
 };
 
@@ -101,50 +172,45 @@ const createDomainElement = (domainObject) => {
  * handles domain settings change
  * @param {*} event
  */
-const handleDomainSettingsClick = (event) => {
-  const domainContainer = event.target.closest(".domain-container");
-  const domainText = domainContainer.children[0].innerText;
-  const settingsName = event.target.getAttribute("data-settings-type");
+const updateDomainSetting = (event) => {
+  const container = event.target.closest(".domain-container");
+  const href = container.children[0].innerText;
+  const setting = event.target.getAttribute("data-settings-type");
 
   event.target.classList.toggle("button-toggled");
 
   // retrieve domain from config array to toggle settings
   config.domains.find((domain) => {
-    if (domain.domain === domainText) {
-      domain.options[settingsName] = !domain.options[settingsName];
+    if (domain.domain === href) {
+      domain.options[setting] = !domain.options[setting];
     }
   });
 
   // update page, storage, and popup
-  updateContentScript("update_page", config, updatePopup);
+  updatePage("update", config, rerenderPopup);
 };
 
 /**
- * handles removal of domain elements
- * @param {*} event
+ * Removes a domain from the list, and updates the page.
+ * @param {MouseEvent} event
  */
-const handleDomainRemoveClick = (event) => {
-  const domainContainer = event.target.closest(".domain-container");
-  const domainText = domainContainer.children[0].innerText;
+const removeDomain = (event) => {
+  const container = event.target.closest(".domain-container");
+  const href = container.children[0].innerText;
 
-  // remove domain container from DOM
-  domainContainer.remove();
+  container.remove();
+  config.domains = config.domains.filter((domain) => domain.domain !== href);
 
-  // remove domain from current config list
-  config.domains = config.domains.filter((domain) => domain.domain !== domainText);
-
-  // update page, storage, and popup
-  updateContentScript("update_page", config, updatePopup);
+  updatePage("update", config, rerenderPopup);
 };
 
 /**
- * iteratively fills in popup with existing domains
+ * Rerenders the popup with updated domain list and settings.
  */
-const updatePopup = () => {
-  const domainContainer = document.getElementById("frame-content-domain-wrapper");
-
-  // ensure domainContainer is emptied so we don't add duplicate elements
-  domainContainer.textContent = "";
+const rerenderPopup = () => {
+  const domainsContainer = document.getElementById("frame-content-domain-wrapper");
+  // clear out existing domain elements, if any
+  domainsContainer.textContent = "";
 
   // create a DocumentFragment so we don't need to repaint the DOM like 100 times
   let documentFragment = new DocumentFragment();
@@ -160,78 +226,14 @@ const updatePopup = () => {
   });
 
   // append fragment to domain container
-  domainContainer.appendChild(documentFragment);
+  domainsContainer.appendChild(documentFragment);
 };
 
-/**************** */
-// settings methods
-/**************** */
-
-/**************** */
-// browser storage methods
-/**************** */
-
-// updates JSON data with most up-to-date data from browser storage on DOM load, then updates popup
-document.addEventListener("DOMContentLoaded", () => {
-  // get config from storage
-  browser.storage.local.get("config").then(
-    (item) => {
-      if (item.config) {
-        // set config to current storage value & update page
-        config = item.config;
-      } else {
-        // set config to default config, since this should only fire if item.config is set to null
-        config = {
-          domains: [],
-          settings: {
-            debug: "true"
-          },
-          streamlining: {
-            hide_shopping: false,
-            hide_graph: false,
-            hide_snippets: false,
-            hide_questions: false,
-            hide_related: false,
-            hide_images: false,
-            hide_videos: false,
-            hide_definitions: false
-          }
-        };
-      }
-
-      updateContentScript("update_page", config, updatePopup);
-    },
-    (err) => {
-      logDebugMessage(err.message);
-    }
-  );
-});
-
 /**
- * sends a new payload to content script
- * @param {string} type - payload type, specifies function to exec once recieved
- * @param {*} payload - payload data
- * @param {*} func - optional : function to executue after successful response
+ * DEBUG - logs a message to the console via content script if debug is true
+ * @param { string } message string to log to console
  */
-const updateContentScript = (type, payload, func = null) => {
-  // query for active tab
-  browser.tabs
-    .query({ active: true, currentWindow: true })
-    .then((tabs) => {
-      // send a new message to content script
-      browser.tabs
-        .sendMessage(tabs[0].id, {
-          type: type, // message type
-          payload: payload // message data
-        })
-        .then(() => func && func()) // optionally run function, if specified
-        .catch(
-          (err) =>
-            // only send message if not log_message type to prevent infinite loop
-            type != "log_message" && logDebugMessage(err.message)
-        );
-    })
-    .catch((err) => {
-      logDebugMessage(err.message);
-    });
+const log = (message) => {
+  console.log(message);
+  config.settings.debug && updatePage("log_message", message);
 };
