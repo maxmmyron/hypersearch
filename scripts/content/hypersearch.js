@@ -22,10 +22,10 @@ const updatePageResults = () => {
       if (!config) return;
 
       // extract domain array and streamlining JSON object
-      const domains = config.domains;
-      const streamlining = config.streamlining;
+      const domainConfigs = config.domains;
+      const streamliningConfig = config.streamlining;
 
-      handleDomainsSetup(domains);
+      handleDomainsSetup(domainConfigs);
 
       // handleStreamlining(streamlining);
     },
@@ -38,174 +38,107 @@ const updatePageResults = () => {
 /**
  * handles domain matching, removing, and pinning
  * given domainConfigs object
- * @param {Object} domainConfigs
+ * @param {import("../../popup/popup.js").Domains[]} domainConfigs - JSON Object array of domains and their settings
  */
 const handleDomainsSetup = (domainConfigs) => {
-  // holds all search results available on page
-  const searchResultsDOMElements = Array.from(document.querySelectorAll("#center_col .g"));
+  const results = Array.from(document.querySelectorAll("#center_col .g"));
+  const resultURLS = results.map((result) => {
+    resetStyling(result);
 
-  // stores domain trimming regexp to remove extraneous filler
-  const domainTrimmingRegexp = /(^\w+:|^)\/\/(w{3}\.)*/;
-
-  // get current domanis on search results page
-  const searchResultsDomains = searchResultsDOMElements.map((searchResultElement) => {
-    // reset styling
-    resetStyling(searchResultElement);
-    // get cite element
-    const searchResultCiteElement = searchResultElement.querySelector("cite");
-    if (searchResultCiteElement) {
-      // split innerText to retrieve topmost domains,
-      // and trim away HTTP protocol
-      return searchResultCiteElement.innerText.split(" ")[0].replace(domainTrimmingRegexp, "");
+    const href = result.querySelector("span > a");
+    if(!href) {
+      // TODO: handle err
     }
-  });
+    return new URL(href.href).hostname;
+  })
 
-  const [lazyDomainConfigs, exactDomainConfigs, overrideDomainConfigs] = splitDomainConfigs(domainConfigs);
-
-  const lazyDomainActions = buildDomainActionConfigs(lazyDomainConfigs, searchResultsDOMElements, searchResultsDomains);
-  const exactDomainActions = buildDomainActionConfigs(exactDomainConfigs, searchResultsDOMElements, searchResultsDomains);
-  const overrideDomainActions = buildDomainActionConfigs(overrideDomainConfigs, searchResultsDOMElements, searchResultsDomains);
-
-  // perform domain actions for each domainActions array
-  [lazyDomainActions, exactDomainActions, overrideDomainActions].forEach((domainActions) => domainActions.forEach((domainAction) => handleDomainAction(domainAction)));
-};
-
-/**
- * Splits domainConfigs JSON object into three subtypes based on domain settings
- * @param {JSON[]} domainConfigs JSON object array of domains and their settings
- * @returns array of three subarrays based on domainConfigs. This array is meant to be destructured to access each subarray.
- */
-const splitDomainConfigs = (domainConfigs) => {
+  // split config into subtypes, based on domain settings
   const lazyConfigs = domainConfigs.filter((domainConfig) => !domainConfig.options.strict && !domainConfig.options.override);
   const exactConfigs = domainConfigs.filter((domainConfig) => domainConfig.options.strict && !domainConfig.options.override);
   const overrideConfigs = domainConfigs.filter((domainConfig) => domainConfig.options.override);
 
-  return [lazyConfigs, exactConfigs, overrideConfigs];
+  const [lazyRemovedElements, lazyPinnedElements] = buildResultsActions(lazyConfigs, results, resultURLS);
+  const [exactRemovedElements, exactPinnedElements] = buildResultsActions(exactConfigs, results, resultURLS);
+  const [overrideRemovedElements, overridePinnedElements] = buildResultsActions(overrideConfigs, results, resultURLS);
+
+  // handle lazy and exact matches first, since they are not overriding anything
+  [...lazyRemovedElements, ...exactRemovedElements].forEach((element) => hideDomain(element));
+  [...lazyPinnedElements, ...exactPinnedElements].forEach((element) => pinDomain(element));
+
+  // override configs should be handled last, since they are overriding other configs
+  [...overrideRemovedElements, ...overridePinnedElements].forEach((element) => resetStyling(searchResultElement));
+  overrideRemovedElements.forEach((element) => hideDomain(element));
+  overridePinnedElements.forEach((element) => pinDomain(element));
 };
 
 /**
  * matches each HTMLElement in searchResults HTMLElement array to an
  * action specified in domainConfigs JSON object
- * @param {Object} domainConfigs JSON Object array of domains and their settings
- * @param {HTMLElement[]} searchResults HTMLElement array of search results
- * @param {string[]} searchDomains string array of domains. Corresponds 1-to-1 with searchResults length
- * @returns JSON Object of HTMLElements and string actions to perform.
+ * @param {DomainConfig[]} domainConfigs JSON Object array of domains and their settings
+ * @param {Element[]} results HTMLElement array of search results
+ * @param {string[]} resultURLs string array of domains. Corresponds 1-to-1 with searchResults length
+ * @returns {[HTMLElement[], HTMLElement[]]} - array of removedElements and pinnedElements
  */
-const buildDomainActionConfigs = (domainConfigs, searchResults, searchDomains) => {
-  const searchMatches = [];
+const buildResultsActions = (domainConfigs, results, resultURLS) => {
+  /**
+   * @type {{searchElement: HTMLElement, config: DomainConfig}[]}
+   */
+  const resultMatches = [];
 
-  // search for lazy/exact domain name matches between searchDomain array and domainConfig array,
-  // and push matches into a new array for action matching
   domainConfigs.forEach((domainConfig) => {
-    searchDomains.forEach((testedDomain, i) => {
-      // continue if element already exists in searchMatches array
-      //if(searchMatches.length > 0 && searchMatches.filter(searchMatch => searchMatch.searchElement === searchResults[i])) continue;
+    resultURLS.forEach((resultURL, i) => {
+      const parsedURL = psl.parse(resultURL).domain;
 
-      // domain used for testing
-      const testingDomain = domainConfig.domain;
-
-      // represents domain to test, stripped of subdomains
-      const lasyTestedDomain = psl.parse(testedDomain).domain;
-
-      const isStrict = domainConfig.options.strict;
-
-      console.log(`testing ${testedDomain} against ${testingDomain}; ${isStrict ? "should be exact match" : "exact match not necessary"}`);
-
-      // check if isStrict is true so we can determine how to test our two domains
-      if (isStrict) {
-        // check for exact match
-        if (testedDomain === testingDomain) {
-          console.log(`🔬 ${testedDomain} exactly matches ${testingDomain}`);
-          searchMatches.push({
-            searchElement: searchResults[i],
-            config: domainConfig
-          });
-        }
-        // exact match not found
-        else console.log(`⛔ ${testedDomain} does not exactly match ${testingDomain}`);
-      } else {
-        // check for lazy match, since isStrict is false
-        if (lasyTestedDomain === testingDomain || testedDomain === testingDomain) {
-          console.log(`✅ ${testedDomain} lazy matches ${testingDomain}`);
-          searchMatches.push({
-            searchElement: searchResults[i],
-            config: domainConfig
-          });
-        }
-        // lazy match not found
-        else console.log(`⛔ ${testedDomain} does not match ${testingDomain}`);
+      // exact match
+      if(resultURL === domainConfig.domain) {
+        resultMatches.push({
+          searchElement: results[i],
+          config: domainConfig
+        })
+      }
+      // lazy match
+      else if (parsedURL === domainConfig.domain && !domainConfig.options.strict) {
+        resultMatches.push({
+          searchElement: results[i],
+          config: domainConfig
+        })
       }
     });
   });
 
+  /**
+   * @type {{element: HTMLElement, action: ACTION_MAPPING_ENUM}[]}
+   */
   const actionConfig = [];
 
-  searchMatches.forEach((domainMatch) => {
-    const searchElement = domainMatch.searchElement;
-    const config = domainMatch.config;
-
+  resultMatches.forEach((resultMatch) => {
+    /**
+     * @type {ACTION_MAPPING_ENUM}
+     */
     let action;
 
-    if (!config.options.override) {
+    if (!resultMatch.config.options.override) {
       // given that these config settings are not overriding anything,
       // we can either pin or remove the element from the search results
-      config.options.pinned ? (action = ACTION_MAPPING_ENUM.PIN) : (action = ACTION_MAPPING_ENUM.REMOVE);
+      resultMatch.config.options.pinned ? (action = ACTION_MAPPING_ENUM.PIN) : (action = ACTION_MAPPING_ENUM.REMOVE);
     } else {
       // because these config settings are overriding an existing config,
       // we might want to do nothing in the case we aren't also pinning
       // the overridden element
-      config.options.pinned ? (action = ACTION_MAPPING_ENUM.PIN) : (action = ACTION_MAPPING_ENUM.NONE);
+      resultMatch.config.options.pinned ? (action = ACTION_MAPPING_ENUM.PIN) : (action = ACTION_MAPPING_ENUM.NONE);
     }
 
-    actionConfig.push({ element: searchElement, action: action });
+    actionConfig.push({ element: resultMatch.searchElement, action: action });
   });
 
-  console.log(actionConfig);
+  const removedElements = actionConfig.filter((action) => action.action === ACTION_MAPPING_ENUM.REMOVE).map((action) => action.element);
+  const pinnedElements = actionConfig.filter((action) => action.action === ACTION_MAPPING_ENUM.PIN).map((action) => action.element);
 
-  return actionConfig;
+  return [removedElements, pinnedElements];
 };
 
-/**
- * performs an action on an HTMLElement
- * @param {Object} actionConfig config consisting of HTMLelement to remove and action to perform
- * @param {HTMLElement} actionConfig.element HTMLElement to perform action on
- * @param {ACTION_MAPPING_ENUM} actionConfig.action action to perform
- */
-const handleDomainAction = (actionConfig) => {
-  // reset styling first, since some elements may be handled twice (bug as of now, check this later)
-  resetStyling(actionConfig.element);
-  // determine proper course of action for config
-  switch (parseInt(actionConfig.action)) {
-    case ACTION_MAPPING_ENUM.NONE:
-      overrideDomain(actionConfig.element);
-      break;
-    case ACTION_MAPPING_ENUM.REMOVE:
-      removeDomain(actionConfig.element);
-      break;
-    case ACTION_MAPPING_ENUM.PIN:
-      pinDomain(actionConfig.element);
-      break;
-    default:
-      break;
-  }
-};
+const hideDomain = (searchResultElement) => searchResultElement.style.display = "none";
 
-/**
- * Overrides a searchResult HTMLElement's styling
- * @param {HTMLElement} searchResultElement element to override existing domain actions
- */
-const overrideDomain = (searchResultElement) => resetStyling(searchResultElement);
-
-/**
- * Removes a searchResult from the search page
- * @param {HTMLElement} searchResultElement element to remove from search results page
- */
-const removeDomain = (searchResultElement) => searchResultElement.style.display = "none";
-
-/**
- * Pins a searchResult to the top of the search page
- * @param {HTMLElement} searchResultElement element to pin to top of search page
- */
 const pinDomain = (searchResultElement) => {
   searchResultElement.style.backgroundColor = "rgba(127,255,127,0.05)";
   searchResultElement.style.borderRadius = "4px";
@@ -221,10 +154,6 @@ const resetStyling = (searchResultElement) => {
   searchResultElement.style.backgroundColor = "initial";
   searchResultElement.style.borderRadius = "initial";
 };
-
-// const handleStreamlining = (streamliningConfig) => {
-//   return null;
-// };
 
 browser.runtime.onMessage.addListener((message) => {
   if (message.type === "update_page") {
