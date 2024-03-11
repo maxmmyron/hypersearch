@@ -156,7 +156,7 @@ const resetStyling = (searchResultElement) => {
 };
 
 browser.runtime.onMessage.addListener((message) => {
-  if (message.type === "update_page") {
+  if (message.type === "update") {
     const config = message.payload;
     browser.storage.local.set({ config }).then(
       () => {

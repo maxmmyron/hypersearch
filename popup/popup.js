@@ -1,30 +1,33 @@
 /**
  * configuration for domain list and settings
  *
- * @type {PopupConfig}
+ * @type {PopupConfig | null}
  */
-let config = {
-  domains: [],
-  opts: {
-    debug: true,
-    streamlining: {
-      shopping: true,
-      graph: true,
-      snippets: true,
-      questions: true,
-      related: true,
-      images: true,
-      videos: true,
-      definitions: true
-    }
-  }
-};
+let config = null;
 
 // update the page with the most up-to-date config when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   browser.storage.local.get("config").then(
     (item) => {
       if (item.config) config = item.config;
+      else {
+        config = {
+          domains: [],
+          opts: {
+            debug: true,
+            streamlining: {
+              shopping: true,
+              graph: true,
+              snippets: true,
+              questions: true,
+              related: true,
+              images: true,
+              videos: true,
+              definitions: true
+            }
+          }
+        };
+      }
       updatePage("update", config, rerenderPopup);
     },
     (err) => log(err.message)
@@ -195,5 +198,5 @@ const rerenderPopup = () => {
  */
 const log = (message) => {
   console.log(message);
-  config.settings.debug && updatePage("log_message", message);
+  config.settings.debug && updatePage("log", message);
 };
