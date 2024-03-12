@@ -84,7 +84,7 @@ const hideResults = (hiddenDomains) => {
       setTimeout(() => {
         result.style.display = "none";
         result.classList.remove("hypersearch-result-closing");
-      }, 425);
+      }, 300);
     }
   });
 };
