@@ -86,15 +86,6 @@ body {
   font-size: 12px;
 }
 
-.button-strict {
-}
-
-.button-pinned {
-}
-
-.button-overflow {
-}
-
 .button-remove {
   width: 16px;
 
@@ -292,17 +283,15 @@ h2.frame-heading {
 
 .credits-label {
   width: 96px;
-}
 
-.credits-label::after {
-  content: "-";
-
-  margin: 0 4px;
+  &::after {
+    content: "-";
+    margin: 0 4px;
+  }
 }
 
 .credits-list > .credits-item {
   padding: 2px 0;
-
   line-height: 1;
 }
 
@@ -317,29 +306,35 @@ footer#footer-frame {
   align-items: flex-end;
 
   width: 100%;
-
   padding: 8px;
-
   overflow: hidden;
-}
 
-#footer-frame > h1,
-p {
-  margin: 0;
-}
+  & .footer-nav {
+    width: 100%;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-#footer-heading {
-  font-family: "Neutral Face";
-  font-weight: bold;
-  font-size: 48px;
+  & h1,
+  & p {
+    font-family: "Neutral Face";
+    font-weight: bold;
+    margin: 0;
+  }
 
-  line-height: 0.95;
-}
+  & #footer-heading {
+    font-size: 48px;
+    line-height: 0.95;
+  }
 
-#footer-credit {
-  font-family: "Neutral Face";
-  font-weight: bold;
-  font-size: 13px;
+  & #footer-credit {
+    font-size: 13px;
+    color: var(--secondary-dark);
 
-  color: var(--secondary-dark);
+    & a {
+      color: var(--secondary-dark);
+    }
+  }
 }

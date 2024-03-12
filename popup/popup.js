@@ -1,110 +1,14 @@
-/**
- * configuration for domain list and settings
- *
- * @type {PopupConfig | null}
- */
-let config = null;
-
-// update the page with the most up-to-date config when the DOM is loaded
-// document.addEventListener("DOMContentLoaded", () => {
-//   chrome.storage.local.get("config").then(
-//     (item) => {
-//       if (item.config) config = item.config;
-//       else {
-//         config = {
-//           domains: [],
-//           opts: {
-//             debug: true,
-//             streamlining: {
-//               shopping: true,
-//               graph: true,
-//               snippets: true,
-//               questions: true,
-//               related: true,
-//               images: true,
-//               videos: true,
-//               definitions: true
-//             }
-//           }
-//         };
-//       }
-//       updatePage("update", config, rerenderPopup);
-//     },
-//     (err) => log(err.message)
-//   );
-// });
-
-/**
- * sends a new payload to content script
- * @param {"update" | "log"} type - payload type, specifies function to exec once received
- * @param {PopupConfig | string} payload - payload data
- * @param {(() => void) | null} cb - optional : function to execute after successful response
- */
-const updatePage = (type, payload, cb = null) => {
-  // query for active tab
-  chrome.tabs
-    .query({ active: true, currentWindow: true })
-    .then((tabs) => {
-      // send a message to the content script
-      chrome.tabs
-        .sendMessage(tabs[0].id, {type, payload})
-        .then(() => {
-          // if a callback is provided, execute it after successful response
-          if(cb) cb()
-        })
-        .catch((err) => {
-          if(type != "log") log(err.message);
-        });
-    })
-    .catch((err) => {
-      log(err.message);
-    });
-};
-
+document.addEventListener("DOMContentLoaded", () => {
+  rerenderPopup();
+});
 /**************** */
 // header input handling
 /**************** */
 
-/**
- * parses domain input to ensure validity. if valid, creates new domain config,
- * updates page, and rerenders popup
- */
-const parseDomain = () => {
-  const domain = document.getElementById("input").value;
-
-  if (!psl.get(domain)) {
-    log("domain is not valid");
-    return;
-  }
-
-  if (!config) return;
-
-  if (config.domains.some((domainConfig) => domainConfig.domain === domain)) {
-    log("domain already exists");
-    return;
-  }
-
-  config.domains.push({
-    domain,
-    opts: {
-      strict: false,
-      pinned: false,
-      override: false
-    }
-  });
-
-  updatePage("update", config, rerenderPopup);
-};
-
-document.getElementById("input").addEventListener("keyup", (e) => {
-  if(e.key === "Enter") parseDomain();
-});
-
-document.getElementById("confirm-input").addEventListener("click", () => parseDomain);
-
 // toggles between content frames (domain list frame & settings frame)
 document.getElementById("settings-toggle").addEventListener("click", () => {
-  document.getElementById("domains-frame").classList.toggle("frame-invisible");
+  document.getElementById("hidden-domains-frame").classList.toggle("frame-invisible");
+  document.getElementById("pinned-domains-frame").classList.toggle("frame-invisible");
   document.getElementById("settings-frame").classList.toggle("frame-invisible");
 });
 
@@ -113,85 +17,85 @@ document.getElementById("settings-toggle").addEventListener("click", () => {
 // *****************************
 
 /**
- * Creates a new HTMLElement based on domainObject and existing HTML5 template in DOM.
- * @param {DomainConfig} domainConfig JSON object to fill in domain element content
- * @returns HTMLElement
+ * Creates a new HTMLElement based on a domain string
+ * @param {string} domain
+ * @param {"hidden" | "pinned"} type
+ * @returns {Node}
  */
-const createDomainElement = (domainConfig) => {
+const createDomainElement = (domain, type) => {
   /**
    * @type {HTMLTemplateElement}
    */
   const template = document.getElementById("domain-template");
   const domainContainer = template.content.firstElementChild.cloneNode(true);
 
-  domainContainer.querySelector(".domain").innerText = domainConfig.domain;
-
-  for (const opt in domainConfig.opts) {
-    if (domainConfig.opts[opt]) domainContainer.querySelector(`button[data-settings-type="${opt}"]`).classList.add("button-toggled");
-  }
+  domainContainer.querySelector(".domain").innerText = domain;
+  domainContainer.querySelector(".button-remove").addEventListener("click", (e) => removeDomain(e, domain, type));
 
   return domainContainer;
 };
 
 /**
- * handles domain settings change
- * @param {*} event
- */
-const updateDomainSetting = (event) => {
-  const container = event.target.closest(".domain-container");
-  const href = container.children[0].innerText;
-  const setting = event.target.getAttribute("data-settings-type");
-
-  event.target.classList.toggle("button-toggled");
-
-  // retrieve domain from config array to toggle settings
-  config.domains.find((domainConfig) => {
-    if (domainConfig.domain === href) {
-      domainConfig.opts[setting] = !domainConfig.opts[setting];
-    }
-  });
-
-  // update page, storage, and popup
-  updatePage("update", config, rerenderPopup);
-};
-
-/**
  * Removes a domain from the list, and updates the page.
  * @param {MouseEvent} event
+ * @param {string} domain
+ * @param {"hidden" | "pinned"} type
  */
-const removeDomain = (event) => {
+const removeDomain = async (event, domain, type) => {
   const container = event.target.closest(".domain-container");
-  const href = container.children[0].innerText;
-
   container.remove();
-  config.domains = config.domains.filter((domainConfig) => domainConfig.domain !== href);
+  if (type === "hidden") {
+    const res = await chrome.storage.local.get("hiddenDomains");
+    let hiddenDomains = res.hiddenDomains || [];
+    hiddenDomains = hiddenDomains.filter((d) => d !== domain);
+    await chrome.storage.local.set({ hiddenDomains });
 
-  updatePage("update", config, rerenderPopup);
+    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { type: "update_hidden", payload: hiddenDomains });
+    });
+  } else {
+    const res = await chrome.storage.local.get("pinnedDomains");
+    let pinnedDomains = res.pinnedDomains || [];
+    pinnedDomains = pinnedDomains.filter((d) => d !== domain);
+    await chrome.storage.local.set({ pinnedDomains });
+
+    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { type: "update_pinned", payload: pinnedDomains });
+    });
+  }
 };
 
 /**
- * Rerenders the popup with updated domain list and settings.
+ * Rerenders the current popup's domain lists
  */
 const rerenderPopup = () => {
-  const domainsContainer = document.getElementById("frame-content-domain-wrapper");
-  // clear out existing domain elements, if any
-  domainsContainer.textContent = "";
+  const hiddenDomainWrapper = document.querySelector("#hidden-domains-frame > .domain-wrapper");
+  hiddenDomainWrapper.innerHTML = "";
+  let hiddenDocumentFragment = new DocumentFragment();
 
-  // create a DocumentFragment so we don't need to repaint the DOM like 100 times
-  let documentFragment = new DocumentFragment();
-
-  // iteratively append domain elements to documentFragment
-  config.domains.forEach((domainConfig) => {
-    const domainEl = createDomainElement(domainConfig);
-    Array.from(domainEl.querySelectorAll(".button[data-settings-type]")).forEach((settingsButton) => {
-      settingsButton.addEventListener("click", updateDomainSetting);
+  chrome.storage.local.get("hiddenDomains").then((res) => {
+    let hiddenDomains = res.hiddenDomains || [];
+    hiddenDomains.forEach((domain) => {
+      const domainEl = createDomainElement(domain, "hidden");
+      hiddenDocumentFragment.appendChild(domainEl);
     });
-    domainEl.querySelector(".button-remove").addEventListener("click", removeDomain);
-    documentFragment.appendChild(domainEl);
+
+    hiddenDomainWrapper.appendChild(hiddenDocumentFragment);
   });
 
-  // append fragment to domain container
-  domainsContainer.appendChild(documentFragment);
+  const pinnedDomainWrapper = document.querySelector("#pinned-domains-frame > .domain-wrapper");
+  pinnedDomainWrapper.innerHTML = "";
+  let pinnedDocumentFragment = new DocumentFragment();
+
+  chrome.storage.local.get("pinnedDomains").then((res) => {
+    let pinnedDomains = res.pinnedDomains || [];
+    pinnedDomains.forEach((domain) => {
+      const domainEl = createDomainElement(domain, "pinned");
+      pinnedDocumentFragment.appendChild(domainEl);
+    });
+
+    pinnedDomainWrapper.appendChild(pinnedDocumentFragment);
+  });
 };
 
 /**
@@ -200,6 +104,7 @@ const rerenderPopup = () => {
  */
 const log = (message) => {
   console.log(message);
-  if(!config) return
-  config.opts.debug && updatePage("log", message);
+  chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { type: "log", payload: message });
+  });
 };
