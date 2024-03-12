@@ -32,7 +32,7 @@ type StreamliningConfig = {
   definitions: boolean;
 }
 
-type PopupConfig = {
+type Config = {
   domains: DomainConfig[];
   opts: {
     debug: boolean;
