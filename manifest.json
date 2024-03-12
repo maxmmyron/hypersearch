@@ -11,8 +11,8 @@
   "content_scripts": [
     {
       "matches": ["*://*.google.com/*"],
-      "js": ["scripts/content/psl.js", "scripts/content/hypersearch.js", "scripts/content/populate.js"],
-      "css": ["styles/content/hypersearch.css"]
+      "js": ["content/scripts/psl.js", "content/scripts/hypersearch.js", "content/scripts/populate.js"],
+      "css": ["content/styles/hypersearch.css"]
     }
   ],
 
@@ -25,5 +25,12 @@
     "storage",
     "tabs",
     "activeTab"
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["/assets/*"],
+      "matches": ["*://*.google.com/*"]
+    }
   ]
 }
