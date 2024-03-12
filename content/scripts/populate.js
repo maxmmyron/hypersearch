@@ -1,9 +1,13 @@
-const observer = new MutationObserver(async (mutations)=> {
-  const config = await chrome.storage.local.get("config");
-  const domains = config.domains.filter((d) => d.opts.hidden);
-  const hiddenDomains = domains.filter((d) => !d.opts.pinned).map((d) => d.domain);
+const observer = new MutationObserver((mutations)=> {
+  chrome.storage.local.get("hiddenDomains", (res) => {
+    /**
+     * @type {string[]}
+     */
+    let hiddenDomains = res.hiddenDomains || [];
+    if (hiddenDomains.length > 0) hideResults(hiddenDomains);
+  });
 
-  hideResults(hiddenDomains).then(() => parseResults());
+  parseResults();
 });
 
 let darkTheme = false;
@@ -21,6 +25,16 @@ window.addEventListener("load", () => {
       document.documentElement.style.setProperty("--hypersearch-border-color", "#dadce0");
     }
   }
+
+  setTimeout(() => {
+  chrome.storage.local.get("hiddenDomains", (res) => {
+    /**
+     * @type {string[]}
+     */
+    let hiddenDomains = res.hiddenDomains || [];
+    if (hiddenDomains.length > 0) hideResults(hiddenDomains);
+  });
+  }, 500);
 
   parseResults();
 
@@ -106,20 +120,17 @@ const parseResults = () => {
     hideButton.classList.add("hypersearch-opt");
     hideButton.setAttribute("data-hypersearch-action", "hide");
     hideButton.addEventListener("click", () => {
-      // send message to background script to add the domain to the hidden list
-      // after the message is sent, parse through existing search results and
-      // hide any that match the href.
-      chrome.runtime.sendMessage({ type: "hide_domain", payload: href }, () => hideResults(href));
+      addHiddenDomain(href);
+      hideResults(href);
+
     });
 
     const pinButton = document.createElement("button");
     pinButton.classList.add("hypersearch-opt");
     pinButton.setAttribute("data-hypersearch-action", "pin");
     pinButton.addEventListener("click", () => {
-      // send message to background script to add the domain to the pinned list
-      // after the message is sent, parse through existing search results and
-      // pin any that match the href.
-      chrome.runtime.sendMessage({ type: "pin_domain", payload: href }, () => pinResults(href));
+      addPinnedDomain(href);
+      pinResults(href);
     });
 
     const el = document.createElement("div");
@@ -132,5 +143,49 @@ const parseResults = () => {
     // update from display: block -> grid
     optContainer.style.display = "grid";
     optContainer.classList.add("hypersearch-result");
+  });
+};
+
+/**
+ * Adds a domain to the hidden domains list
+ * @param {string} domain
+ */
+const addHiddenDomain = (domain) => {
+  chrome.storage.local.get("hiddenDomains", (res) => {
+    /**
+     * @type {string[]}
+     */
+    let hiddenDomains = res.hiddenDomains || [];
+
+    if(hiddenDomains.includes(domain)) {
+      console.warn(`Domain ${domain} already hidden.`);
+      return;
+    }
+
+    hiddenDomains = [...hiddenDomains, domain];
+
+    chrome.storage.local.set({ hiddenDomains });
+  });
+};
+
+/**
+ * Adds a domain to the pinned domains list
+ * @param {string} domain
+ */
+const addPinnedDomain = (domain) => {
+  chrome.storage.local.get("pinnedDomains", (res) => {
+    /**
+     * @type {string[]}
+     */
+    let pinnedDomains = res.pinnedDomains || [];
+
+    if(pinnedDomains.includes(domain)) {
+      console.warn(`Domain ${domain} already pinned.`);
+      return;
+    }
+
+    pinnedDomains = [...pinnedDomains, domain];
+
+    chrome.storage.local.set({ pinnedDomains });
   });
 };

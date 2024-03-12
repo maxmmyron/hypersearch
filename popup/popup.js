@@ -6,33 +6,33 @@
 let config = null;
 
 // update the page with the most up-to-date config when the DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.local.get("config").then(
-    (item) => {
-      if (item.config) config = item.config;
-      else {
-        config = {
-          domains: [],
-          opts: {
-            debug: true,
-            streamlining: {
-              shopping: true,
-              graph: true,
-              snippets: true,
-              questions: true,
-              related: true,
-              images: true,
-              videos: true,
-              definitions: true
-            }
-          }
-        };
-      }
-      updatePage("update", config, rerenderPopup);
-    },
-    (err) => log(err.message)
-  );
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//   chrome.storage.local.get("config").then(
+//     (item) => {
+//       if (item.config) config = item.config;
+//       else {
+//         config = {
+//           domains: [],
+//           opts: {
+//             debug: true,
+//             streamlining: {
+//               shopping: true,
+//               graph: true,
+//               snippets: true,
+//               questions: true,
+//               related: true,
+//               images: true,
+//               videos: true,
+//               definitions: true
+//             }
+//           }
+//         };
+//       }
+//       updatePage("update", config, rerenderPopup);
+//     },
+//     (err) => log(err.message)
+//   );
+// });
 
 /**
  * sends a new payload to content script
