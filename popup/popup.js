@@ -7,7 +7,7 @@ let config = null;
 
 // update the page with the most up-to-date config when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  browser.storage.local.get("config").then(
+  chrome.storage.local.get("config").then(
     (item) => {
       if (item.config) config = item.config;
       else {
@@ -42,11 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 const updatePage = (type, payload, cb = null) => {
   // query for active tab
-  browser.tabs
+  chrome.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => {
       // send a message to the content script
-      browser.tabs
+      chrome.tabs
         .sendMessage(tabs[0].id, {type, payload})
         .then(() => {
           // if a callback is provided, execute it after successful response
@@ -76,6 +76,8 @@ const parseDomain = () => {
     log("domain is not valid");
     return;
   }
+
+  if (!config) return;
 
   if (config.domains.some((domainConfig) => domainConfig.domain === domain)) {
     log("domain already exists");

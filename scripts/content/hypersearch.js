@@ -13,12 +13,13 @@ const ACTION_MAPPING_ENUM = {
  */
 const updatePageResults = () => {
   // retrieve updated list from localStorage
-  browser.storage.local.get("config").then(
+  chrome.storage.local.get("config").then(
     (item) => {
       /**
        * primary config for domains array, streamlining settings, and extension settings
        */
       const config = item.config;
+      console.log("config", config);
       if (!config) return;
 
       // extract domain array and streamlining JSON object
@@ -155,10 +156,10 @@ const resetStyling = (searchResultElement) => {
   searchResultElement.style.borderRadius = "initial";
 };
 
-browser.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "update") {
     const config = message.payload;
-    browser.storage.local.set({ config }).then(
+    chrome.storage.local.set({ config }).then(
       () => {
         updatePageResults();
       },
