@@ -1,3 +1,5 @@
+const SHOW_SQUIGGLES = false;
+
 const observer = new MutationObserver((mutations)=> {
   chrome.storage.local.get("hiddenDomains", (res) => {
     /**
@@ -20,13 +22,20 @@ window.addEventListener("load", () => {
     // get next sibling
     if(darkThemeSpan.nextSibling.innerText === "On") {
       darkTheme = true;
-      document.documentElement.style.setProperty("--hypersearch-border-color", "#3c4043");
+    } else if (darkThemeSpan.nextSibling.innerText === "Off") {
+      darkTheme = false;
     } else {
-      document.documentElement.style.setProperty("--hypersearch-border-color", "#dadce0");
+      // check with window
+      let matchesDark = window.matchMedia("(prefers-color-scheme: dark)")
+      darkTheme = matchesDark.matches;
     }
+
+    if (darkTheme)
+      document.documentElement.style.setProperty("--hypersearch-border-color", "#3c4043");
+    else
+      document.documentElement.style.setProperty("--hypersearch-border-color", "#dadce0");
   }
 
-  setTimeout(() => {
   chrome.storage.local.get("hiddenDomains", (res) => {
     /**
      * @type {string[]}
@@ -34,7 +43,6 @@ window.addEventListener("load", () => {
     let hiddenDomains = res.hiddenDomains || [];
     if (hiddenDomains.length > 0) hideResults(hiddenDomains);
   });
-  }, 500);
 
   parseResults();
 
@@ -53,8 +61,30 @@ const hideResults = (hiddenDomains) => {
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(hiddenDomains.includes(href)) {
-      result.style.display = "none";
+
+      if (SHOW_SQUIGGLES) {
+        for (let i = 0; i < 10; i++) {
+          let scribble = document.createElement("img");
+          const scribbleIdx = Math.floor(Math.random() * 5);
+          scribble.src = chrome.runtime.getURL(`assets/scribble_${scribbleIdx}.svg`);
+          scribble.classList.add("hypersearch-scribble");
+          scribble.style.width = `${Math.random() * 75 + 25}px`;
+          scribble.style.top = `${Math.random() * 80 + 10}%`;
+          scribble.style.left = `${Math.random() * 110 - 5}%`;
+          scribble.style.transform = `rotate(${Math.random() * 360}deg) translate(-50%, -50%)`;
+
+          setTimeout(() => {
+            result.appendChild(scribble);
+          }, i * 15 + Math.random() * 15);
+        }
+      }
+
+      result.classList.add("hypersearch-result-closing");
       result.setAttribute("data-hypersearch-hidden", "true");
+      setTimeout(() => {
+        result.style.display = "none";
+        result.classList.remove("hypersearch-result-closing");
+      }, 425);
     }
   });
 };
@@ -71,6 +101,10 @@ const unhideResults = (hiddenDomains) => {
       }
 
       result.removeAttribute("data-hypersearch-hidden");
+
+      result.querySelectorAll(".hypersearch-scribble").forEach((scribble) => {
+        scribble.remove();
+      });
     }
   });
 };
@@ -119,6 +153,7 @@ const parseResults = () => {
     const hideButton = document.createElement("button");
     hideButton.classList.add("hypersearch-opt");
     hideButton.setAttribute("data-hypersearch-action", "hide");
+    hideButton.setAttribute("tabindex", "0");
     hideButton.addEventListener("click", () => {
       addHiddenDomain(href);
       hideResults(href);
@@ -128,14 +163,16 @@ const parseResults = () => {
     const pinButton = document.createElement("button");
     pinButton.classList.add("hypersearch-opt");
     pinButton.setAttribute("data-hypersearch-action", "pin");
+    pinButton.setAttribute("tabindex", "0");
     pinButton.addEventListener("click", () => {
       addPinnedDomain(href);
-      pinResults(href);
+      console.log("pinning is unimplemented");
+      // pinResults(href);
     });
 
     const el = document.createElement("div");
     el.classList.add("hypersearch-opts");
-    el.setAttribute("data-hypersearch-color", darkTheme ? "dark" : "light");
+    el.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
     el.appendChild(hideButton);
     el.appendChild(pinButton);
 
@@ -185,7 +222,23 @@ const addPinnedDomain = (domain) => {
     }
 
     pinnedDomains = [...pinnedDomains, domain];
-
     chrome.storage.local.set({ pinnedDomains });
   });
 };
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.type) {
+    case "log":
+      console.log(message.payload);
+      break;
+    case "update_hidden":
+      unhideResults(message.payload || []);
+      hideResults(message.payload || []);
+      break;
+    case "update_pinned":
+      console.log("update_pinned is unimplemented");
+      // unpinResults(message.payload || []);
+      // pinResults(message.payload || []);
+      break;
+  }
+});
