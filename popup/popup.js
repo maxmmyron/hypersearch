@@ -200,5 +200,6 @@ const rerenderPopup = () => {
  */
 const log = (message) => {
   console.log(message);
-  config.settings.debug && updatePage("log", message);
+  if(!config) return
+  config.opts.debug && updatePage("log", message);
 };
