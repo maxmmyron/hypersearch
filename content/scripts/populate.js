@@ -10,6 +10,7 @@ const observer = new MutationObserver((mutations)=> {
   });
 
   parseResults();
+  parseCards();
 });
 
 let darkTheme = false;
@@ -57,7 +58,7 @@ window.addEventListener("load", () => {
  * @param {string[]} hiddenDomains
  */
 const hideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll(".g:not([data-hypersearch-hidden])")).forEach((result) => {
+  Array.from(document.querySelectorAll("div.g:not([data-hypersearch-hidden])")).forEach((result) => {
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(hiddenDomains.includes(href)) {
@@ -72,7 +73,7 @@ const hideResults = (hiddenDomains) => {
 };
 
 const unhideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll(".g[data-hypersearch-hidden]")).forEach((result) => {
+  Array.from(document.querySelectorAll("div.g[data-hypersearch-hidden]")).forEach((result) => {
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(!hiddenDomains.includes(href)) {
@@ -96,7 +97,7 @@ const parseResults = () => {
   // - class "g": search results
   // - no data-hypersearch-opts attribute: not already parsed
   // - no child elements with class "g" (i.e. find the leaf .g nodes)
-  const results = Array.from(document.querySelectorAll(".g:not([data-hypersearch-opts]):not(:has(.g))")).map((result) => {
+  const results = Array.from(document.querySelectorAll("div.g:not([data-hypersearch-opts]):not(:has(.g))")).map((result) => {
     if (result.querySelector(":scope > [jsslot]")) {
       // if the result element has a direct child with the jsslot attribute, it's a video
       return {
@@ -134,7 +135,6 @@ const parseResults = () => {
     hideButton.addEventListener("click", () => {
       addHiddenDomain(href);
       hideResults(href);
-
     });
 
     const pinButton = document.createElement("button");
@@ -201,6 +201,11 @@ const addPinnedDomain = (domain) => {
     pinnedDomains = [...pinnedDomains, domain];
     chrome.storage.local.set({ pinnedDomains });
   });
+};
+
+const parseCards = () => {
+  // search for definition cards
+  const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"))
 };
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
