@@ -1,0 +1,69 @@
+:root {
+  --hypersearch-border-color: #dadce0;
+}
+
+.hypersearch-result {
+  display: grid;
+  grid-template-columns: 564px 28px;
+  background-color: transparent !important;
+  gap: 0.5rem;
+
+  &:hover .hypersearch-opts {
+    opacity: 1;
+
+}
+
+.hypersearch-opts {
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  width: 20px;
+  height: calc(100% - 1rem);
+  border-left: 1px solid var(--hypersearch-border-color);
+  padding: 0 0 0 0.5rem;
+  margin: 0.5rem 0;
+
+  & button.hypersearch-opt {
+    background-color: transparent;
+    background-size: 22px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    margin: 0;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  &:has(button:focus) {
+    opacity: 1;
+  }
+}
+
+.hypersearch-opts button[data-hypersearch-action="pin"] {
+  display: none;
+}
+
+.hypersearch-opts[data-hypersearch-theme="dark"] {
+  & button[data-hypersearch-action="hide"] {
+    background-image: url("chrome-extension://__MSG_@@extension_id__/assets/hide_dark.svg");
+  }
+
+  & button[data-hypersearch-action="pin"] {
+    background-image: url("chrome-extension://__MSG_@@extension_id__/assets/pin_dark.svg");
+  }
+}
+
+.hypersearch-opts[data-hypersearch-theme="light"] {
+  & button[data-hypersearch-action="hide"] {
+    background-image: url("chrome-extension://__MSG_@@extension_id__/assets/hide_light.svg");
+  }
+
+  & button[data-hypersearch-action="pin"] {
+    background-image: url("chrome-extension://__MSG_@@extension_id__/assets/pin_light.svg");
+  }
+}

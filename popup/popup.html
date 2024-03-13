@@ -8,77 +8,57 @@
 </head>
 <body>
   <div id="popup-content">
-    <header id="header-frame">
-      <input id="input">
-      <button id="confirm-input" class="button button-text">add</button>
-      <button id="settings-toggle" class="button button-settings"></button>
-    </header>
-    <section id="domains-frame" class="content-frame">
-      <header class="frame-header-wrapper">
-        <h1 class="frame-heading">Domains</h1>
-        <div id="frame-header-table">
-          <p>exact</p>
-          <p>pin</p>
-          <p>override</p>
-          <div class="empty"></div>
-        </div>
-      </header>
-      <div class="frame-content-wrapper">
-        <div class="frame-scoll-fade fade-top"></div>
-        <div id="frame-content-domain-wrapper">
-          <!--domains go here-->
-        </div>
-        <div class="frame-scoll-fade fade-bottom"></div>
-      </div>
+    <section id="hidden-domains-frame" class="content-frame">
+      <h1 class="frame-heading">Hidden Domains</h1>
+      <div class="domain-wrapper"></div>
     </section>
+    <!-- <section id="pinned-domains-frame" class="content-frame">
+      <h1 class="frame-heading">Pinned Domains</h1>
+      <div class="domain-wrapper"></div>
+    </section> -->
     <section id="settings-frame" class="content-frame frame-invisible">
-      <header class="content-frame-header">
-        <h1 class="frame-heading">Settings</h1>
-      </header>
-      <div class="frame-content-wrapper">
-        <div class="frame-section">
-          <h2 class="frame-heading">Streamline</h2>
-          <div id="streamline-wrapper" class="frame-content flex-buttons">
-            <div class="button-column">
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">inline images</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">inline video</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">related searches</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">related questions</p>
-              </div>
+      <!-- <h1 class="frame-heading">Settings</h1>
+      <div class="frame-section">
+        <div id="streamline-wrapper" class="frame-content flex-buttons">
+          <div class="button-column">
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">inline images</p>
             </div>
-            <div class="button-column">
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">shopping</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">knowledge graphs</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">featured snippets</p>
-              </div>
-              <div class="labeled-option">
-                <button class="button button-default toggled"></button>
-                <p class="label">definitions</p>
-              </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">inline video</p>
+            </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">related searches</p>
+            </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">related questions</p>
+            </div>
+          </div>
+          <div class="button-column">
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">shopping</p>
+            </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">knowledge graphs</p>
+            </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">featured snippets</p>
+            </div>
+            <div class="labeled-option">
+              <button class="button button-default toggled"></button>
+              <p class="label">definitions</p>
             </div>
           </div>
         </div>
         <div class="frame-section">
-          <h2 class="frame-heading">Settings</h2>
+          <h2 class="frame-heading">Developer</h2>
           <div id="theme-wrapper" class="frame-content flex-buttons">
             <div class="labeled-option">
               <button class="button button-debug"></button>
@@ -86,22 +66,22 @@
             </div>
           </div>
         </div>
-        <div id="credits-section" class="frame-section">
-          <h2 class="frame-heading">Credits</h2>
-          <div id="credits-wrapper" class="frame-content">
-            <div class="credits">
-              <p class="credits-label">libraries</p>
-              <div class="credits-list">
-                <p class="credits-item">anime.js</p>
-                <p class="credits-item">psl</p>
-              </div>
+      </div> -->
+      <h1 class="frame-heading">Credits</h1>
+      <div id="credits-section" class="frame-section">
+        <div id="credits-wrapper" class="frame-content">
+          <div class="credits">
+            <p class="credits-label">libraries</p>
+            <div class="credits-list">
+              <p class="credits-item">anime.js</p>
+              <p class="credits-item">psl</p>
             </div>
-            <div class="credits">
-              <p class="credits-label">fonts</p>
-              <div class="credits-list">
-                <p class="credits-item">Satoshi</p>
-                <p class="credits-item">Neutral Face</p>
-              </div>
+          </div>
+          <div class="credits">
+            <p class="credits-label">fonts</p>
+            <div class="credits-list">
+              <p class="credits-item">Satoshi</p>
+              <p class="credits-item">Neutral Face</p>
             </div>
           </div>
         </div>
@@ -109,7 +89,11 @@
     </section>
     <footer id="footer-frame">
       <h1 id="footer-heading">hypersearch</h1>
-      <p id="footer-credit">by mmyron</p>
+      <div class="footer-nav">
+        <button id="settings-toggle" class="button button-settings">S</button>
+        <p id="footer-credit">by <a href="https://mmyron.com/">mmyron</a>.</p>
+      </div>
+
     </footer>
   </div>
 
@@ -118,15 +102,12 @@
     <div class="domain-container">
       <p class="domain"></p>
       <div class="domain-settings">
-        <button class="button button-strict" data-settings-type="strict"></button>
-        <button class="button button-pinned" data-settings-type="pinned"></button>
-        <button class="button button-override" data-settings-type="override"></button>
         <button class="button button-remove"></button>
       </div>
     </div>
   </template>
 
   <script src="../scripts/content/psl.js"></script>
-  <script src="popup.js"></script>
+  <script src="./popup.js"></script>
 </body>
 </html>
