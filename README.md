@@ -28,9 +28,3 @@ The following heuristic selectors are used to identify search results:
 | Video Result    | `div.g:not(:has(.g)) > [jsslot]`                           |
 | Twitter Result  | `div.g:not(:has(.g)) > g-section-with-header`              |
 | Definition Card | `div[data-corpus]:has(div[data-attrid="SenseDefinition"])` |
-
-## TODO
-
-There are a few bugs to work out currently:
-
-- [ ] Generic results' hover state is not properly tracked if the result is in a "People also ask" card answer dropdown (tab focus works fine).
