@@ -95,9 +95,8 @@ const parseResults = () => {
   // find those elements with:
   // - class "g": search results
   // - no data-hypersearch-opts attribute: not already parsed
-  // - no data-hypersearch-hidden attribute: not already hidden
   // - no child elements with class "g" (i.e. find the leaf .g nodes)
-  const results = Array.from(document.querySelectorAll(".g:not([data-hypersearch-opts]):not([data-hypersearch-hidden]):not(:has(.g))")).map((result) => {
+  const results = Array.from(document.querySelectorAll(".g:not([data-hypersearch-opts]):not(:has(.g))")).map((result) => {
     if (result.querySelector(":scope > [jsslot]")) {
       // if the result element has a direct child with the jsslot attribute, it's a video
       return {
