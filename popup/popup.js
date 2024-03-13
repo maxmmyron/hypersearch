@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // toggles between content frames (domain list frame & settings frame)
 document.getElementById("settings-toggle").addEventListener("click", () => {
   document.getElementById("hidden-domains-frame").classList.toggle("frame-invisible");
-  document.getElementById("pinned-domains-frame").classList.toggle("frame-invisible");
+  // FIXME: implement pinned results
+  // document.getElementById("pinned-domains-frame").classList.toggle("frame-invisible");
   document.getElementById("settings-frame").classList.toggle("frame-invisible");
 });
 
@@ -54,6 +55,8 @@ const removeDomain = async (event, domain, type) => {
       chrome.tabs.sendMessage(tabs[0].id, { type: "update_hidden", payload: hiddenDomains });
     });
   } else {
+    // FIXME: remove early return once pinned results are implements
+    return;
     const res = await chrome.storage.local.get("pinnedDomains");
     let pinnedDomains = res.pinnedDomains || [];
     pinnedDomains = pinnedDomains.filter((d) => d !== domain);
@@ -83,6 +86,9 @@ const rerenderPopup = () => {
     hiddenDomainWrapper.appendChild(hiddenDocumentFragment);
   });
 
+  // FIXME: remove early return once pinned results are implements
+  return;
+
   const pinnedDomainWrapper = document.querySelector("#pinned-domains-frame > .domain-wrapper");
   pinnedDomainWrapper.innerHTML = "";
   let pinnedDocumentFragment = new DocumentFragment();
@@ -95,16 +101,5 @@ const rerenderPopup = () => {
     });
 
     pinnedDomainWrapper.appendChild(pinnedDocumentFragment);
-  });
-};
-
-/**
- * DEBUG - logs a message to the console via content script if debug is true
- * @param { string } message string to log to console
- */
-const log = (message) => {
-  console.log(message);
-  chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { type: "log", payload: message });
   });
 };

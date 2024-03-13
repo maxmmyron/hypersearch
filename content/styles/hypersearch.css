@@ -39,6 +39,10 @@
   }
 }
 
+.hypersearch-opts button[data-hypersearch-action="pin"] {
+  display: none;
+}
+
 .hypersearch-opts[data-hypersearch-theme="dark"] {
   & button[data-hypersearch-action="hide"] {
     background-image: url("chrome-extension://__MSG_@@extension_id__/assets/hide_dark.svg");
