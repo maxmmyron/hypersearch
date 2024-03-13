@@ -58,7 +58,8 @@ window.addEventListener("load", () => {
  * @param {string[]} hiddenDomains
  */
 const hideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll("div.g:not([data-hypersearch-hidden])")).forEach((result) => {
+  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts]:not([data-hypersearch-hidden])")).forEach((result) => {
+    console.log(result);
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(hiddenDomains.includes(href)) {
@@ -73,7 +74,8 @@ const hideResults = (hiddenDomains) => {
 };
 
 const unhideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll("div.g[data-hypersearch-hidden]")).forEach((result) => {
+  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts][data-hypersearch-hidden]")).forEach((result) => {
+    console.log(result);
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(!hiddenDomains.includes(href)) {
