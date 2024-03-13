@@ -4,9 +4,13 @@
 
 .hypersearch-result {
   display: grid;
-  grid-template-columns: 580px 20px;
+  grid-template-columns: 564px 28px;
   background-color: transparent !important;
   gap: 0.5rem;
+
+  &:hover .hypersearch-opts {
+    opacity: 1;
+
 }
 
 .hypersearch-opts {
@@ -16,10 +20,11 @@
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
-  width: 100%;
-  height: 100%;
+  width: 20px;
+  height: calc(100% - 1rem);
   border-left: 1px solid var(--hypersearch-border-color);
   padding: 0 0 0 0.5rem;
+  margin: 0.5rem 0;
 
   & button.hypersearch-opt {
     background-color: transparent;
