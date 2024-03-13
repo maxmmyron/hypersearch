@@ -62,23 +62,6 @@ const hideResults = (hiddenDomains) => {
 
     if(hiddenDomains.includes(href)) {
 
-      if (SHOW_SQUIGGLES) {
-        for (let i = 0; i < 10; i++) {
-          let scribble = document.createElement("img");
-          const scribbleIdx = Math.floor(Math.random() * 5);
-          scribble.src = chrome.runtime.getURL(`assets/scribble_${scribbleIdx}.svg`);
-          scribble.classList.add("hypersearch-scribble");
-          scribble.style.width = `${Math.random() * 75 + 25}px`;
-          scribble.style.top = `${Math.random() * 80 + 10}%`;
-          scribble.style.left = `${Math.random() * 110 - 5}%`;
-          scribble.style.transform = `rotate(${Math.random() * 360}deg) translate(-50%, -50%)`;
-
-          setTimeout(() => {
-            result.appendChild(scribble);
-          }, i * 15 + Math.random() * 15);
-        }
-      }
-
       result.classList.add("hypersearch-result-closing");
       result.setAttribute("data-hypersearch-hidden", "true");
       setTimeout(() => {
@@ -101,10 +84,6 @@ const unhideResults = (hiddenDomains) => {
       }
 
       result.removeAttribute("data-hypersearch-hidden");
-
-      result.querySelectorAll(".hypersearch-scribble").forEach((scribble) => {
-        scribble.remove();
-      });
     }
   });
 };
