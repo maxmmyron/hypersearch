@@ -61,7 +61,6 @@ const hideResults = (hiddenDomains) => {
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(hiddenDomains.includes(href)) {
-
       result.classList.add("hypersearch-result-closing");
       result.setAttribute("data-hypersearch-hidden", "true");
       setTimeout(() => {
