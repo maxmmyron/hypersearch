@@ -51,9 +51,8 @@ const removeDomain = async (event, domain, type) => {
     hiddenDomains = hiddenDomains.filter((d) => d !== domain);
     await chrome.storage.local.set({ hiddenDomains });
 
-    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "update_hidden", payload: hiddenDomains });
-    });
+    let tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(tabs[0].id, { type: "update_hidden", payload: hiddenDomains });
   } else {
     // FIXME: remove early return once pinned results are implements
     return;
@@ -62,28 +61,24 @@ const removeDomain = async (event, domain, type) => {
     pinnedDomains = pinnedDomains.filter((d) => d !== domain);
     await chrome.storage.local.set({ pinnedDomains });
 
-    chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "update_pinned", payload: pinnedDomains });
-    });
+    let tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(tabs[0].id, { type: "update_pinned", payload: pinnedDomains });
   }
 };
 
 /**
  * Rerenders the current popup's domain lists
  */
-const rerenderPopup = () => {
+const rerenderPopup = async () => {
   const hiddenDomainWrapper = document.querySelector("#hidden-domains-frame > .domain-wrapper");
   hiddenDomainWrapper.innerHTML = "";
   let hiddenDocumentFragment = new DocumentFragment();
 
-  chrome.storage.local.get("hiddenDomains").then((res) => {
-    let hiddenDomains = res.hiddenDomains || [];
-    hiddenDomains.forEach((domain) => {
-      const domainEl = createDomainElement(domain, "hidden");
-      hiddenDocumentFragment.appendChild(domainEl);
-    });
-
-    hiddenDomainWrapper.appendChild(hiddenDocumentFragment);
+  let hiddenRes = await chrome.storage.local.get("hiddenDomains");
+  let hiddenDomains = hiddenRes.hiddenDomains || [];
+  hiddenDomains.forEach((domain) => {
+    const domainEl = createDomainElement(domain, "hidden");
+    hiddenDocumentFragment.appendChild(domainEl);
   });
 
   // FIXME: remove early return once pinned results are implements
@@ -93,13 +88,12 @@ const rerenderPopup = () => {
   pinnedDomainWrapper.innerHTML = "";
   let pinnedDocumentFragment = new DocumentFragment();
 
-  chrome.storage.local.get("pinnedDomains").then((res) => {
-    let pinnedDomains = res.pinnedDomains || [];
-    pinnedDomains.forEach((domain) => {
-      const domainEl = createDomainElement(domain, "pinned");
-      pinnedDocumentFragment.appendChild(domainEl);
-    });
-
-    pinnedDomainWrapper.appendChild(pinnedDocumentFragment);
+  let pinnedRes = await chrome.storage.local.get("pinnedDomains");
+  let pinnedDomains = res.pinnedDomains || [];
+  pinnedDomains.forEach((domain) => {
+    const domainEl = createDomainElement(domain, "pinned");
+    pinnedDocumentFragment.appendChild(domainEl);
   });
+
+  pinnedDomainWrapper.appendChild(pinnedDocumentFragment);
 };
