@@ -15,7 +15,7 @@ const observer = new MutationObserver((mutations)=> {
 
 let darkTheme = false;
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   // attempt to determine if the current theme is light or dark. Search doesn't seem to use
   // prefers-color-scheme, so we have to parse a certain iframe's styles to determine the theme
   const darkThemeSpan = [...document.querySelectorAll("#appbar a span")].find((span) => span.innerText === "Dark theme");
@@ -37,13 +37,9 @@ window.addEventListener("load", () => {
       document.documentElement.style.setProperty("--hypersearch-border-color", "#dadce0");
   }
 
-  browser.storage.local.get("hiddenDomains", (res) => {
-    /**
-     * @type {string[]}
-     */
-    let hiddenDomains = res.hiddenDomains || [];
-    if (hiddenDomains.length > 0) hideResults(hiddenDomains);
-  });
+  let res = await browser.storage.local.get("hiddenDomains");
+  let hiddenDomains = res.hiddenDomains || [];
+  if (hiddenDomains.length > 0) hideResults(hiddenDomains);
 
   parseResults();
 
@@ -135,8 +131,7 @@ const parseResults = () => {
     hideButton.setAttribute("data-hypersearch-action", "hide");
     hideButton.setAttribute("tabindex", "0");
     hideButton.addEventListener("click", () => {
-      addHiddenDomain(href);
-      hideResults(href);
+      addHiddenDomain(href).then(() => hideResults(href));
     });
 
     const pinButton = document.createElement("button");
@@ -144,9 +139,7 @@ const parseResults = () => {
     pinButton.setAttribute("data-hypersearch-action", "pin");
     pinButton.setAttribute("tabindex", "0");
     pinButton.addEventListener("click", () => {
-      addPinnedDomain(href);
-      console.log("pinning is unimplemented");
-      // pinResults(href);
+      addPinnedDomain(href).then(() => { /** TODO: implement pinResults(href) */});
     });
 
     const el = document.createElement("div");
@@ -166,43 +159,34 @@ const parseResults = () => {
  * Adds a domain to the hidden domains list
  * @param {string} domain
  */
-const addHiddenDomain = (domain) => {
-  browser.storage.local.get("hiddenDomains", (res) => {
-    /**
-     * @type {string[]}
-     */
-    let hiddenDomains = res.hiddenDomains || [];
+const addHiddenDomain = async (domain) => {
+  let res = await browser.storage.local.get("hiddenDomains");
+  let hiddenDomains = res.hiddenDomains || [];
 
-    if(hiddenDomains.includes(domain)) {
-      console.warn(`Domain ${domain} already hidden.`);
-      return;
-    }
+  if(hiddenDomains.includes(domain)) {
+    console.warn(`Domain ${domain} already hidden.`);
+    return;
+  }
 
-    hiddenDomains = [...hiddenDomains, domain];
-
-    browser.storage.local.set({ hiddenDomains });
-  });
+  hiddenDomains = [...hiddenDomains, domain];
+  await browser.storage.local.set({ hiddenDomains });
 };
 
 /**
  * Adds a domain to the pinned domains list
  * @param {string} domain
  */
-const addPinnedDomain = (domain) => {
-  browser.storage.local.get("pinnedDomains", (res) => {
-    /**
-     * @type {string[]}
-     */
-    let pinnedDomains = res.pinnedDomains || [];
+const addPinnedDomain = async (domain) => {
+  let res = await browser.storage.local.get("pinnedDomains");
+  let pinnedDomains = res.pinnedDomains || [];
 
-    if(pinnedDomains.includes(domain)) {
-      console.warn(`Domain ${domain} already pinned.`);
-      return;
-    }
+  if(pinnedDomains.includes(domain)) {
+    console.warn(`Domain ${domain} already pinned.`);
+    return;
+  }
 
-    pinnedDomains = [...pinnedDomains, domain];
-    browser.storage.local.set({ pinnedDomains });
-  });
+  pinnedDomains = [...pinnedDomains, domain];
+  await browser.storage.local.set({ pinnedDomains });
 };
 
 const parseCards = () => {
