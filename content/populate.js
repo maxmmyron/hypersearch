@@ -191,7 +191,7 @@ const addPinnedDomain = async (domain) => {
 
 const parseCards = () => {
   // search for definition cards
-  const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"))
+  const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"));
 };
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
