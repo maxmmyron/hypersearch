@@ -1,7 +1,7 @@
 const SHOW_SQUIGGLES = false;
 
 const observer = new MutationObserver((mutations)=> {
-  chrome.storage.local.get("hiddenDomains", (res) => {
+  browser.storage.local.get("hiddenDomains", (res) => {
     /**
      * @type {string[]}
      */
@@ -37,7 +37,7 @@ window.addEventListener("load", () => {
       document.documentElement.style.setProperty("--hypersearch-border-color", "#dadce0");
   }
 
-  chrome.storage.local.get("hiddenDomains", (res) => {
+  browser.storage.local.get("hiddenDomains", (res) => {
     /**
      * @type {string[]}
      */
@@ -167,7 +167,7 @@ const parseResults = () => {
  * @param {string} domain
  */
 const addHiddenDomain = (domain) => {
-  chrome.storage.local.get("hiddenDomains", (res) => {
+  browser.storage.local.get("hiddenDomains", (res) => {
     /**
      * @type {string[]}
      */
@@ -180,7 +180,7 @@ const addHiddenDomain = (domain) => {
 
     hiddenDomains = [...hiddenDomains, domain];
 
-    chrome.storage.local.set({ hiddenDomains });
+    browser.storage.local.set({ hiddenDomains });
   });
 };
 
@@ -189,7 +189,7 @@ const addHiddenDomain = (domain) => {
  * @param {string} domain
  */
 const addPinnedDomain = (domain) => {
-  chrome.storage.local.get("pinnedDomains", (res) => {
+  browser.storage.local.get("pinnedDomains", (res) => {
     /**
      * @type {string[]}
      */
@@ -201,7 +201,7 @@ const addPinnedDomain = (domain) => {
     }
 
     pinnedDomains = [...pinnedDomains, domain];
-    chrome.storage.local.set({ pinnedDomains });
+    browser.storage.local.set({ pinnedDomains });
   });
 };
 
@@ -210,7 +210,7 @@ const parseCards = () => {
   const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"))
 };
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case "log":
       console.log(message.payload);
