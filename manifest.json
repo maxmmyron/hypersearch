@@ -5,8 +5,10 @@
   "description": "Power user browsing tools",
 
   "icons": {
+    "16": "icons/hypersearch_light-16.png",
+    "32": "icons/hypersearch_light-32.png",
     "48": "icons/hypersearch_light-48.png",
-    "96": "icons/hypersearch_light-96.png"
+    "128": "icons/hypersearch_light-128.png"
   },
 
   "content_scripts": [
@@ -18,8 +20,34 @@
   ],
 
   "action": {
+    "default_icon": {
+      "16": "icons/hypersearch_light-16.png",
+      "32": "icons/hypersearch_light-32.png"
+    },
+    "default_title": "Hypersearch",
     "default_popup": "popup/popup.html",
-    "default_icon": "icons/hypersearch-48.png"
+    "theme_icons": [
+      {
+        "light": "icons/hypersearch_light-16.png",
+        "dark": "icons/hypersearch_dark-16.png",
+        "size": 16
+      },
+      {
+        "light": "icons/hypersearch_light-32.png",
+        "dark": "icons/hypersearch_dark-32.png",
+        "size": 32
+      },
+      {
+        "light": "icons/hypersearch_light-48.png",
+        "dark": "icons/hypersearch_dark-48.png",
+        "size": 48
+      },
+      {
+        "light": "icons/hypersearch_light-96.png",
+        "dark": "icons/hypersearch_dark-96.png",
+        "size": 96
+      }
+    ]
   },
 
   "permissions": [
