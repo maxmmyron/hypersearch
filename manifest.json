@@ -5,8 +5,8 @@
   "description": "Power user browsing tools",
 
   "icons": {
-    "48": "icons/hypersearch-48.png",
-    "96": "icons/hypersearch-96.png"
+    "48": "icons/hypersearch_light-48.png",
+    "96": "icons/hypersearch_light-96.png"
   },
 
   "content_scripts": [
