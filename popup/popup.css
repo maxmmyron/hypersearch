@@ -15,13 +15,13 @@
 
 @font-face {
   font-family: "Vela Sans";
-  src: url("./assets/fonts/VELASANS-BOLD.OTF");
+  src: url("./fonts/VELASANS-BOLD.OTF");
   font-weight: bold;
 }
 
 @font-face {
   font-family: "Vela Sans";
-  src: url("./assets/fonts/VELASANS-SEMIBOLD.OTF");
+  src: url("./fonts/VELASANS-SEMIBOLD.OTF");
   font-weight: 600;
 }
 
