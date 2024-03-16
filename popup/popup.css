@@ -14,20 +14,15 @@
 }
 
 @font-face {
-  font-family: Neutral Face;
-  src: url("./assets/fonts/NEUTRALFACE-BOLD.OTF");
+  font-family: "Vela Sans";
+  src: url("./assets/fonts/VELASANS-BOLD.OTF");
   font-weight: bold;
 }
 
 @font-face {
-  font-family: Neutral Face;
-  src: url("./assets/fonts/NEUTRALFACE.OTF");
-  font-weight: normal;
-}
-
-@font-face {
-  font-family: Satoshi;
-  src: url("./assets/fonts/SATOSHI-MEDIUM.OTF");
+  font-family: "Vela Sans";
+  src: url("./assets/fonts/VELASANS-SEMIBOLD.OTF");
+  font-weight: 600;
 }
 
 * {
