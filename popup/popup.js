@@ -1,17 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   await rerenderPopup();
 });
-/**************** */
-// header input handling
-/**************** */
-
-// toggles between content frames (domain list frame & settings frame)
-document.getElementById("settings-toggle").addEventListener("click", () => {
-  document.getElementById("hidden-domains-frame").classList.toggle("frame-invisible");
-  // FIXME: implement pinned results
-  // document.getElementById("pinned-domains-frame").classList.toggle("frame-invisible");
-  document.getElementById("settings-frame").classList.toggle("frame-invisible");
-});
 
 // *****************************
 // Popup handlers
@@ -31,7 +20,7 @@ const createDomainElement = (domain, type) => {
   const domainContainer = template.content.firstElementChild.cloneNode(true);
 
   domainContainer.querySelector(".domain").innerText = domain;
-  domainContainer.querySelector(".button-remove").addEventListener("click", (e) => removeDomain(e, domain, type));
+  domainContainer.querySelector(".remove-button").addEventListener("click", (e) => removeDomain(e, domain, type));
 
   return domainContainer;
 };
@@ -70,7 +59,7 @@ const removeDomain = async (event, domain, type) => {
  * Rerenders the current popup's domain lists
  */
 const rerenderPopup = async () => {
-  const hiddenDomainWrapper = document.querySelector("#hidden-domains-frame > .domain-wrapper");
+  const hiddenDomainWrapper = document.querySelector("#domain-main");
   hiddenDomainWrapper.innerHTML = "";
   let hiddenDocumentFragment = new DocumentFragment();
 
