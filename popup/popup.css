@@ -120,6 +120,17 @@ body {
 
     color: var(--secondary-text);
   }
+
+  & .remove-button {
+    opacity: 0;
+    scale: 0.85;
+    transition: var(--spring-easing) 0.25s;
+  }
+
+  &:hover .remove-button {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 #domain-main > article:nth-child(even) {
@@ -279,12 +290,14 @@ body {
   transition: var(--spring-easing) 0.25s;
 }
 
+/* FIXME: these hover styles shouldn't have to be important? */
+
 .button:hover {
-  scale: 1.1;
+  scale: 1.1 !important;
 }
 
 .button:active {
-  scale: 0.9;
+  scale: 0.9 !important;
 }
 
 @media (prefers-color-scheme: dark) {
