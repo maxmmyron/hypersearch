@@ -115,7 +115,7 @@ const parseResults = () => {
     result.setAttribute("data-hypersearch-opts", "true");
 
     // fetch the template and inject it into the result element
-    const res = await fetch(chrome.runtime.getURL('/content/hypersearch-template.html'));
+    const res = await fetch(chrome.runtime.getURL('/src/content/hypersearch-template.html'));
     const template = await res.text();
     optContainer.insertAdjacentHTML("beforeend", template);
 
