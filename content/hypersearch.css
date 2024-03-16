@@ -6,7 +6,7 @@
 }
 
 .hypersearch-result {
-  display: relative;
+  position: relative;
   max-width: 600px;
 
   &:hover .hypersearch-opts {
