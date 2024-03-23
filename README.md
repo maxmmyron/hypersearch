@@ -39,10 +39,27 @@ The following heuristic selectors are used to identify search results:
 
 We likewise use the following heuristic selectors to identify different cards:
 
-| Card Type       | Selector                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------- |
-| Definition Card | `div[data-corpus]:has(div[data-attrid="SenseDefinition"])`                               |
-| Related Search  | `div[data-abe]`                                                                          |
-| People also ask | `null`                                                                                   |
-| Knowledge Card  | `div[data-corpus]:has(div[data-attrid="title"])`                                         |
-| People Card     | `div:has(#center-col) > div:has(div[aria-label="Featured results"][role=complimentary])` |
+### Top Stories
+
+- Selector: `div[jsdata][data-ved]:has(div[aria-level="2"][role=heading])`
+- Parsing: `(div[aria-level="2"][role=heading]).innerHTML === "Top Stories"`
+
+### Definition Card
+
+- Selector: `div[data-corpus]:has(div[data-attrid="SenseDefinition"])`
+
+### Releated Search Card
+
+- Selector: `div[data-abe]`
+
+### "People also ask" Card
+
+- Selector: `div[jsaction][data-initq][data-miif]`
+
+### Knowledge Card (?)
+
+- Selector: `div[data-corpus]:has(div[data-attrid="title"])`
+
+### People Card (?)
+
+- Selector: `div:has(#center-col) > div:has(div[aria-label="Featured results"][role=complimentary])`

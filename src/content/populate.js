@@ -172,21 +172,12 @@ const addPinnedDomain = async (domain) => {
 };
 
 const parseCards = () => {
-  const cardQueryMap = new Map([
-    ["Definitions", "div[data-corpus]:has(div[data-attrid='SenseDefinition'])"],
-    ["Related searches", "div[data-abe]"],
-    ["Videos", ".wp-ms"],
-    ["Questions", ""],
-    ["Gemini Results", ""],
-    ["Images", ""],
-    ["Top stores", ""],
-    ["Complimentary", "div[role=complementary]"]
-
-
-  ])
-
   // search for definition cards
   const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"));
+  const related = Array.from(document.querySelectorAll("div[data-abe]"));
+  const pae = Array.from(document.querySelectorAll("div[jsaction][data-initq][data-miif]")).map((el) => el.parentElement.parentElement);
+  const news = Array.from(document.querySelectorAll("div[jsdata][data-ved]:has(div[aria-level='2'][role='heading'])")).filter(el => el.querySelector("div[aria-level='2'][role='heading'])").innerText === "Top stores")
+
 
 };
 
