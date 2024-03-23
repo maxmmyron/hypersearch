@@ -172,8 +172,22 @@ const addPinnedDomain = async (domain) => {
 };
 
 const parseCards = () => {
+  const cardQueryMap = new Map([
+    ["Definitions", "div[data-corpus]:has(div[data-attrid='SenseDefinition'])"],
+    ["Related searches", "div[data-abe]"],
+    ["Videos", ".wp-ms"],
+    ["Questions", ""],
+    ["Gemini Results", ""],
+    ["Images", ""],
+    ["Top stores", ""],
+    ["Complimentary", "div[role=complementary]"]
+
+
+  ])
+
   // search for definition cards
   const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"));
+
 };
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {

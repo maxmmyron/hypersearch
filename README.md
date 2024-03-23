@@ -31,9 +31,18 @@ Hypersearch is simple in design, yet powerful in execution. Hypersearch tracks c
 
 The following heuristic selectors are used to identify search results:
 
-| Result Element  | Selector                                                   |
-| --------------- | ---------------------------------------------------------- |
-| Generic Result  | `div.g:not(:has(.g))`                                      |
-| Video Result    | `div.g:not(:has(.g)) > [jsslot]`                           |
-| Twitter Result  | `div.g:not(:has(.g)) > g-section-with-header`              |
-| Definition Card | `div[data-corpus]:has(div[data-attrid="SenseDefinition"])` |
+| Result Element | Selector                                      |
+| -------------- | --------------------------------------------- |
+| Generic Result | `div.g:not(:has(.g))`                         |
+| Video Result   | `div.g:not(:has(.g)) > [jsslot]`              |
+| Twitter Result | `div.g:not(:has(.g)) > g-section-with-header` |
+
+We likewise use the following heuristic selectors to identify different cards:
+
+| Card Type       | Selector                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| Definition Card | `div[data-corpus]:has(div[data-attrid="SenseDefinition"])`                               |
+| Related Search  | `div[data-abe]`                                                                          |
+| People also ask | `null`                                                                                   |
+| Knowledge Card  | `div[data-corpus]:has(div[data-attrid="title"])`                                         |
+| People Card     | `div:has(#center-col) > div:has(div[aria-label="Featured results"][role=complimentary])` |
