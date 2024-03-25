@@ -29,6 +29,8 @@ These features are currently planned for future releases:
 
 Hypersearch is simple in design, yet powerful in execution. Hypersearch tracks changes to the DOM tree, and queries the DOM for relevant elements based on some heuristic rules (i.e. imperfect, but pretty good nonetheless).
 
+### General search results
+
 The following heuristic selectors are used to identify search results:
 
 | Result Element | Selector                                      |
@@ -39,27 +41,45 @@ The following heuristic selectors are used to identify search results:
 
 We likewise use the following heuristic selectors to identify different cards:
 
+### People Card
+
+Displays for prominent figures. This card is not always present.
+
+_Note: This card seems to be split into two sections: a header and main container._
+
+- Selector: (?) `div:has(#center-col) > div:has(div[aria-label="Featured results"][role=complimentary])`
+
+### Knowledge Graph
+
+Displays for well-known results on the side of typical search results. This card is not always present.
+
+- Selector: (?) `div[data-corpus]:has(div[data-attrid="title"])`
+
 ### Top Stories
+
+Display for news results. This card is not always present.
 
 - Selector: `div[jsdata][data-ved]:has(div[aria-level="2"][role=heading])`
 - Parsing: `(div[aria-level="2"][role=heading]).innerHTML === "Top Stories"`
 
 ### Definition Card
 
+Displays for certain words. This card is not always present.
+
 - Selector: `div[data-corpus]:has(div[data-attrid="SenseDefinition"])`
 
-### Releated Search Card
+### Related Search Card
+
+This card is typically present.
 
 - Selector: `div[data-abe]`
 
 ### "People also ask" Card
 
+This card is typically present.
+
 - Selector: `div[jsaction][data-initq][data-miif]`
 
-### Knowledge Card (?)
+### Perspectives
 
-- Selector: `div[data-corpus]:has(div[data-attrid="title"])`
-
-### People Card (?)
-
-- Selector: `div:has(#center-col) > div:has(div[aria-label="Featured results"][role=complimentary])`
+Typically shows for controversial or divisive topics.
