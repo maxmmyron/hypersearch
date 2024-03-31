@@ -298,7 +298,6 @@ const addHiddenCardType = async (type) => {
  * @param {number} type - The type of card to hide from search results.
  */
 const hideCardType = (type) => {
-  console.log("Hiding card type", type);
   const query = cardMap.get(type) + ":not([data-hypersearch-hidden])";
   const cards = Array.from(document.querySelectorAll(query));
 
