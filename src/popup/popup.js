@@ -99,6 +99,12 @@ const rerenderPopup = async () => {
 
   hiddenDomainWrapper.appendChild(hiddenDocumentFragment);
 
+  let hiddenCardsRes = await browser.storage.local.get("hiddenCards");
+  let hiddenCards = hiddenCardsRes.hiddenCards || 0;
+  ids.forEach((id) => {
+    document.getElementById(id).checked = (hiddenCards & document.getElementById(id).value) !== 0;
+  });
+
   // FIXME: remove early return once pinned results are implements
   return;
 
