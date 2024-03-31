@@ -31,7 +31,7 @@ const observer = new MutationObserver((mutations)=> {
      * @type {number}
      */
     let hiddenCards = res.hiddenCards || 0;
-    hideCards(hiddenCards, false);
+    hideCards(hiddenCards);
   });
 });
 
@@ -63,38 +63,18 @@ window.addEventListener("load", async () => {
   let hiddenDomains = res.hiddenDomains || [];
   if (hiddenDomains.length > 0) hideResults(hiddenDomains);
 
+  res = await browser.storage.local.get("hiddenCards");
+  let hiddenCards = res.hiddenCards || 0;
+  hideCards(hiddenCards);
+
   parseResults();
+  parseCards();
 
   observer.observe(document.querySelector("#center_col"), {
     subtree: true,
     childList: true,
   });
 });
-
-/**
- * parses through new search results and removes any that are hidden.
- * @param {string[]} hiddenDomains
- */
-const hideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts]:not([data-hypersearch-hidden])")).forEach((result) => {
-    const href = new URL(result.querySelector("a").href).hostname;
-
-    if(hiddenDomains.includes(href)) {
-      result.classList.add("hypersearch-result-closing");
-      result.setAttribute("data-hypersearch-hidden", "true");
-    }
-  });
-};
-
-const unhideResults = (hiddenDomains) => {
-  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts][data-hypersearch-hidden]")).forEach((result) => {
-    const href = new URL(result.querySelector("a").href).hostname;
-
-    if(!hiddenDomains.includes(href)) {
-      result.removeAttribute("data-hypersearch-hidden");
-    }
-  });
-};
 
 /**
  * Parses new search results by type, and injects new HTML content into each
@@ -147,11 +127,11 @@ const parseResults = () => {
     opts.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
 
     optContainer.querySelector("[data-hypersearch-action=hide]").addEventListener("click", () => {
-      addHiddenDomain(href).then(() => hideResults(href));
+      storeHiddenDomain(href).then(() => hideResults(href));
     });
 
     optContainer.querySelector("[data-hypersearch-action=pin]").addEventListener("click", () => {
-      addPinnedDomain(href).then(() => { /** TODO: implement pinResults(href) */});
+      storePinnedDomain(href).then(() => { /** TODO: implement pinResults(href) */});
     });
 
     // remove any set display property
@@ -164,7 +144,7 @@ const parseResults = () => {
  * Adds a domain to the hidden domains list
  * @param {string} domain
  */
-const addHiddenDomain = async (domain) => {
+const storeHiddenDomain = async (domain) => {
   let res = await browser.storage.local.get("hiddenDomains");
   let hiddenDomains = res.hiddenDomains || [];
 
@@ -181,7 +161,7 @@ const addHiddenDomain = async (domain) => {
  * Adds a domain to the pinned domains list
  * @param {string} domain
  */
-const addPinnedDomain = async (domain) => {
+const storePinnedDomain = async (domain) => {
   let res = await browser.storage.local.get("pinnedDomains");
   let pinnedDomains = res.pinnedDomains || [];
 
@@ -192,6 +172,31 @@ const addPinnedDomain = async (domain) => {
 
   pinnedDomains = [...pinnedDomains, domain];
   await browser.storage.local.set({ pinnedDomains });
+};
+
+/**
+ * parses through new search results and removes any that are hidden.
+ * @param {string[]} hiddenDomains
+ */
+const hideResults = (hiddenDomains) => {
+  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts]:not([data-hypersearch-hidden])")).forEach((result) => {
+    const href = new URL(result.querySelector("a").href).hostname;
+
+    if(hiddenDomains.includes(href)) {
+      result.classList.add("hypersearch-result-closing");
+      result.setAttribute("data-hypersearch-hidden", "true");
+    }
+  });
+};
+
+const unhideResults = (hiddenDomains) => {
+  Array.from(document.querySelectorAll("div.g[data-hypersearch-opts][data-hypersearch-hidden]")).forEach((result) => {
+    const href = new URL(result.querySelector("a").href).hostname;
+
+    if(!hiddenDomains.includes(href)) {
+      result.removeAttribute("data-hypersearch-hidden");
+    }
+  });
 };
 
 const parseCards = () => {
@@ -274,7 +279,7 @@ const wrapHeader = async (headerParent, type) => {
   const opts = headerWrapper.querySelector(".hypersearch-opts");
   opts.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
   headerWrapper.querySelector("[data-hypersearch-action=hide]").addEventListener("click", () => {
-    addHiddenCardType(type).then(() => hideCardType(type));
+    storeHiddenCardType(type).then(() => hideCardType(type));
   });
 
   headerParent.insertBefore(headerWrapper, headerParent.firstChild);
@@ -284,7 +289,7 @@ const wrapHeader = async (headerParent, type) => {
  *
  * @param {string} type - The type of card to hide from search results.
  */
-const addHiddenCardType = async (type) => {
+const storeHiddenCardType = async (type) => {
   let res = await browser.storage.local.get("hiddenCards");
   let hiddenCards = res.hiddenCards || 0;
 
@@ -294,8 +299,8 @@ const addHiddenCardType = async (type) => {
 };
 
 /**
- *
- * @param {number} type - The type of card to hide from search results.
+ * @param {number} type - The type of card to hide from search results. This is
+ * equivalent to a 32-bit bitmask with a single bit set.
  */
 const hideCardType = (type) => {
   const query = cardMap.get(type) + ":not([data-hypersearch-hidden])";
@@ -308,11 +313,25 @@ const hideCardType = (type) => {
 };
 
 /**
- * Parses
+ * @param {number} type - The type of card to unhide from search results. This
+ * is equivalent to a 32-bit bitmask with a single bit set.
+ */
+const unhideCardType = (type) => {
+  const query = cardMap.get(type) + "[data-hypersearch-hidden]";
+  const cards = Array.from(document.querySelectorAll(query));
+
+  cards.forEach(card => {
+    card.removeAttribute("data-hypersearch-hidden");
+  });
+};
+
+/**
+ * Hides all cards that are flagged in the provided bitmask
+ *
  * @param {number} types a bitmask of card types to hide
  * @param {boolean} isSingle whether type is a single card type or an aggregate of multiple card types
  */
-const hideCards = (types, isSingle) => {
+const hideCards = (types) => {
   if (isSingle) {
     hideCardType(types);
   } else {
@@ -330,11 +349,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case "log":
       console.log(message.payload);
       break;
-    case "update_hidden":
+    case "update_hidden_results":
       unhideResults(message.payload || []);
       hideResults(message.payload || []);
       break;
-    case "update_pinned":
+    case "update_hidden_cards":
+      unhideCards(message.payload || 0);
+      hideCards(message.payload || 0);
+      break;
+    case "update_pinned_results":
       console.log("update_pinned is unimplemented");
       // unpinResults(message.payload || []);
       // pinResults(message.payload || []);
