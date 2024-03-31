@@ -2,9 +2,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   await rerenderPopup();
 });
 
-// *****************************
-// Popup handlers
-// *****************************
+const ids = ["streamlining-definitions", "streamlining-questions", "streamlining-results", "streamlining-news"];
+
+id.forEach((id) => {
+  document.getElementById(id).addEventListener("click", async (e) => {
+    e.target.checked = !e.target.checked;
+    const val = e.target.value;
+
+    const res = await browser.storage.local.get("hiddenCards");
+    let hiddenCards = res.hiddenCards || 0;
+
+    if (e.target.checked) {
+      hiddenCards |= val;
+    } else {
+      hiddenCards &= ~val;
+    }
+
+    await browser.storage.local.set({ hiddenCards });
+
+    let tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    browser.tabs.sendMessage(tabs[0].id, { type: "update_hidden_cards", payload: hiddenCards });
+  });
+});
+
+document.getElementById("streamlining-definitions").addEventListener("click", (e) => {
+  e.target.checked = !e.target.checked;
+  if(e.target.checked) {
+    browser.storage.local.set({streamliningDefinitions: true});
+  }
+
+});
 
 /**
  * Creates a new HTMLElement based on a domain string
