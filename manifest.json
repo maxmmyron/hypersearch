@@ -57,7 +57,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["/assets/*", "/src/content/hypersearch-template.html"],
+      "resources": ["/assets/*", "/src/content/hypersearch-result-template.html", "/src/content/hypersearch-card-template.html"],
       "matches": ["*://*.google.com/*"]
     }
   ]

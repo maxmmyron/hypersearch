@@ -1,6 +1,23 @@
 const SHOW_SQUIGGLES = false;
 
+const DEFINITIONS = 1;
+const RELATED_QUESTIONS = 2;
+const RELATED_RESULTS = 4;
+const NEWS = 8;
+
+/**
+ * A mapping between card type ints and their respective query selectors
+ */
+const cardMap = new Map([
+  [DEFINITIONS, "div[data-corpus]:has(div[data-attrid='SenseDefinition'])"],
+  [RELATED_QUESTIONS, "div[jsaction][data-initq][data-miif]"],
+  [RELATED_RESULTS, "div[data-abe]"],
+])
+
 const observer = new MutationObserver((mutations)=> {
+  parseResults();
+  parseCards();
+
   browser.storage.local.get("hiddenDomains", (res) => {
     /**
      * @type {string[]}
@@ -9,8 +26,13 @@ const observer = new MutationObserver((mutations)=> {
     if (hiddenDomains.length > 0) hideResults(hiddenDomains);
   });
 
-  parseResults();
-  parseCards();
+  browser.storage.local.get("hiddenCards", (res) => {
+    /**
+     * @type {number}
+     */
+    let hiddenCards = res.hiddenCards || 0;
+    hideCards(hiddenCards, false);
+  });
 });
 
 let darkTheme = false;
@@ -115,7 +137,8 @@ const parseResults = () => {
     result.setAttribute("data-hypersearch-opts", "true");
 
     // fetch the template and inject it into the result element
-    const res = await fetch(chrome.runtime.getURL('/src/content/hypersearch-template.html'));
+    // FIXME: this fetch runs every time a result is parsed
+    const res = await fetch(chrome.runtime.getURL('/src/content/hypersearch-result-template.html'));
     const template = await res.text();
     optContainer.insertAdjacentHTML("beforeend", template);
 
@@ -172,13 +195,135 @@ const addPinnedDomain = async (domain) => {
 };
 
 const parseCards = () => {
-  // search for definition cards
-  const defintions = Array.from(document.querySelectorAll("div[data-corpus]:has(div[data-attrid='SenseDefinition']"));
-  const related = Array.from(document.querySelectorAll("div[data-abe]"));
-  const pae = Array.from(document.querySelectorAll("div[jsaction][data-initq][data-miif]")).map((el) => el.parentElement.parentElement);
-  const news = Array.from(document.querySelectorAll("div[jsdata][data-ved]:has(div[aria-level='2'][role='heading'])")).filter(el => el.querySelector("div[aria-level='2'][role='heading'])").innerText === "Top stores")
+  const defintions = Array.from(document.querySelectorAll(`${cardMap.get(DEFINITIONS)}:not([data-hypersearch-opts])`));
+  const relatedQuestions = Array.from(document.querySelectorAll(`${cardMap.get(RELATED_QUESTIONS)}:not([data-hypersearch-opts])`));
+  const relatedResults = Array.from(document.querySelectorAll(`${cardMap.get(RELATED_RESULTS)}:not([data-hypersearch-opts])`));
+  // FIXME: this is a bit shaky! news requires an extra identifier to be sure
+  const potentialNews = Array.from(document.querySelectorAll(`div[jsdata][data-ved]:has(div[aria-level="2"][role="heading"]):not([data-hypersearch-opts])`));
 
+  defintions.forEach(el => {
+    el.classList.add("hypersearch-card");
+    el.setAttribute("data-hypersearch-opts", "true");
+    el.setAttribute("data-hypersearch-type", DEFINITIONS);
 
+    const headerParent = el.querySelector("[data-attrid='DictionaryHeader']");
+    if(!headerParent) return;
+    wrapHeader(headerParent, DEFINITIONS);
+  });
+
+  relatedQuestions.forEach(el => {
+    el.classList.add("hypersearch-card");
+    el.setAttribute("data-hypersearch-opts", "true");
+    el.setAttribute("data-hypersearch-type", RELATED_QUESTIONS);
+
+    const headerParent = el.children[0];
+    if(!headerParent) return;
+    wrapHeader(headerParent, RELATED_QUESTIONS);
+  });
+
+  relatedResults.forEach(el => {
+    el.classList.add("hypersearch-card");
+    el.setAttribute("data-hypersearch-opts", "true");
+    el.setAttribute("data-hypersearch-type", RELATED_RESULTS);
+
+    const headerParent = el.children[0];
+    if(!headerParent) return;
+    wrapHeader(headerParent, RELATED_RESULTS);
+  });
+
+  // potentialNews.forEach(el => {
+  //   const heading = el.querySelector("[aria-level='2'][role='heading']");
+  //   if (!heading) return;
+  //   if (el.querySelector("[aria-level='2'][role='heading']").innerText === "Top stories") {
+  //     el.setAttribute("data-hypersearch-opts", "true");
+  //     el.setAttribute("data-hypersearch-type", "news");
+  //     el.style.backgroundColor = "yellow";
+  //   }
+  // });
+};
+
+/**
+ *
+ * @param {HTMLDivElement} headerParent
+ * @param {string} type - The type of card to hide from search results.
+ * @returns
+ */
+const wrapHeader = async (headerParent, type) => {
+  /**
+   * @type {HTMLDivElement | null}
+   */
+  const header = headerParent.children[0];
+
+  if(!header) {
+    console.warn("Error parsing card: No header found");
+    return;
+  }
+
+  header.style.width = "100%";
+
+  const headerWrapper = document.createElement("div");
+  headerWrapper.classList.add("hypersearch-card-header");
+  headerWrapper.appendChild(header);
+
+  // FIXME: this fetch runs every time a card is parsed
+  const res = await fetch(chrome.runtime.getURL('/src/content/hypersearch-result-template.html'));
+  const template = await res.text();
+  headerWrapper.insertAdjacentHTML("beforeend", template);
+
+  // setup template data
+  const opts = headerWrapper.querySelector(".hypersearch-opts");
+  opts.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
+  headerWrapper.querySelector("[data-hypersearch-action=hide]").addEventListener("click", () => {
+    addHiddenCardType(type).then(() => hideCardType(type));
+  });
+
+  headerParent.insertBefore(headerWrapper, headerParent.firstChild);
+};
+
+/**
+ *
+ * @param {string} type - The type of card to hide from search results.
+ */
+const addHiddenCardType = async (type) => {
+  let res = await browser.storage.local.get("hiddenCards");
+  let hiddenCards = res.hiddenCards || 0;
+
+  hiddenCards |= type;
+
+  await browser.storage.local.set({ hiddenCards });
+};
+
+/**
+ *
+ * @param {number} type - The type of card to hide from search results.
+ */
+const hideCardType = (type) => {
+  console.log("Hiding card type", type);
+  const query = cardMap.get(type) + ":not([data-hypersearch-hidden])";
+  const cards = Array.from(document.querySelectorAll(query));
+
+  cards.forEach(card => {
+    card.classList.add("hypersearch-result-closing");
+    card.setAttribute("data-hypersearch-hidden", "true");
+  });
+};
+
+/**
+ * Parses
+ * @param {number} types a bitmask of card types to hide
+ * @param {boolean} isSingle whether type is a single card type or an aggregate of multiple card types
+ */
+const hideCards = (types, isSingle) => {
+  if (isSingle) {
+    hideCardType(types);
+  } else {
+    // iterate through each bit in the types bitmask and hide the card type if it exists
+    for (let i = 0; i < 32; i++) {
+      if (types & (1 << i) && cardMap.has(1 << i)) {
+        hideCardType(1 << i);
+      }
+    }
+  }
 };
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {

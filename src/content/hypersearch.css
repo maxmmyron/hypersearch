@@ -5,6 +5,28 @@
   --spring-duration: 0.667s;
 }
 
+.hypersearch-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+
+  &:hover .hypersearch-opts {
+    opacity: 1;
+    left: calc(100% - 1rem);
+    scale: 1;
+
+    & div {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.hypersearch-card[data-hypersearch-hidden] {
+  display: none;
+}
+
 .hypersearch-result {
   position: relative;
   max-width: 600px;
