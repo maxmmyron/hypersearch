@@ -248,9 +248,10 @@ const parseCards = () => {
 };
 
 /**
+ * Wraps the header of a card with hypersearch template elements.
  *
- * @param {HTMLDivElement} headerParent
- * @param {string} type - The type of card to hide from search results.
+ * @param {HTMLDivElement} headerParent - The header parent element
+ * @param {string} type - The type of card we're working with
  * @returns
  */
 const wrapHeader = async (headerParent, type) => {
