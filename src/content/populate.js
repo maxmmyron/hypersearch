@@ -279,7 +279,7 @@ const wrapHeader = async (headerParent, type) => {
   const opts = headerWrapper.querySelector(".hypersearch-opts");
   opts.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
   headerWrapper.querySelector("[data-hypersearch-action=hide]").addEventListener("click", () => {
-    storeHiddenCardType(type).then(() => hideCardType(type));
+    storeHiddenCardType(type).then(() => hideCards(type));
   });
 
   headerParent.insertBefore(headerWrapper, headerParent.firstChild);
@@ -299,50 +299,41 @@ const storeHiddenCardType = async (type) => {
 };
 
 /**
- * @param {number} type - The type of card to hide from search results. This is
- * equivalent to a 32-bit bitmask with a single bit set.
- */
-const hideCardType = (type) => {
-  const query = cardMap.get(type) + ":not([data-hypersearch-hidden])";
-  const cards = Array.from(document.querySelectorAll(query));
-
-  cards.forEach(card => {
-    card.classList.add("hypersearch-result-closing");
-    card.setAttribute("data-hypersearch-hidden", "true");
-  });
-};
-
-/**
- * @param {number} type - The type of card to unhide from search results. This
- * is equivalent to a 32-bit bitmask with a single bit set.
- */
-const unhideCardType = (type) => {
-  const query = cardMap.get(type) + "[data-hypersearch-hidden]";
-  const cards = Array.from(document.querySelectorAll(query));
-
-  cards.forEach(card => {
-    card.removeAttribute("data-hypersearch-hidden");
-  });
-};
-
-/**
  * Hides all cards that are flagged in the provided bitmask
  *
  * @param {number} types a bitmask of card types to hide
- * @param {boolean} isSingle whether type is a single card type or an aggregate of multiple card types
  */
 const hideCards = (types) => {
-  if (isSingle) {
-    hideCardType(types);
-  } else {
-    // iterate through each bit in the types bitmask and hide the card type if it exists
-    for (let i = 0; i < 32; i++) {
-      if (types & (1 << i) && cardMap.has(1 << i)) {
-        hideCardType(1 << i);
-      }
+  for (let i = 0; i < 32; i++) {
+    if (types & (1 << i) && cardMap.has(1 << i)) {
+      const query = cardMap.get(1 << i) + ":not([data-hypersearch-hidden])";
+      const cards = Array.from(document.querySelectorAll(query));
+
+      cards.forEach(card => {
+        card.classList.add("hypersearch-result-closing");
+        card.setAttribute("data-hypersearch-hidden", "true");
+      });
     }
   }
 };
+
+/**
+ * Unhides all cards that are flagged in the provided bitmask
+ * @param {number} types a bitmask of card types to unhide
+ */
+const unhideCards = (types) => {
+  // iterate through each bit in the types bitmask and unhide the card type if it exists
+  for (let i = 0; i < 32; i++) {
+    if (types & (1 << i) && cardMap.has(1 << i)) {
+      const query = cardMap.get(1 << i) + "[data-hypersearch-hidden]";
+      const cards = Array.from(document.querySelectorAll(query));
+
+      cards.forEach(card => {
+        card.removeAttribute("data-hypersearch-hidden");
+      });
+    }
+  }
+}
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
