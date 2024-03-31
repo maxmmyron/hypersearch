@@ -41,7 +41,7 @@ const removeDomain = async (event, domain, type) => {
     await browser.storage.local.set({ hiddenDomains });
 
     let tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    browser.tabs.sendMessage(tabs[0].id, { type: "update_hidden", payload: hiddenDomains });
+    browser.tabs.sendMessage(tabs[0].id, { type: "update_hidden_results", payload: hiddenDomains });
   } else {
     // FIXME: remove early return once pinned results are implements
     return;
@@ -51,7 +51,7 @@ const removeDomain = async (event, domain, type) => {
     await browser.storage.local.set({ pinnedDomains });
 
     let tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    browser.tabs.sendMessage(tabs[0].id, { type: "update_pinned", payload: pinnedDomains });
+    browser.tabs.sendMessage(tabs[0].id, { type: "update_pinned_results", payload: pinnedDomains });
   }
 };
 
