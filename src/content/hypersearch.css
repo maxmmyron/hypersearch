@@ -11,20 +11,26 @@
   align-items: center;
   flex-wrap: wrap;
   position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.hypersearch-card {
+  & .hypersearch-opts {
+    left: 600px;
+  }
 
   &:hover .hypersearch-opts {
     opacity: 1;
-    left: calc(100% - 1rem);
     scale: 1;
 
     & div {
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     }
   }
-}
 
-.hypersearch-card[data-hypersearch-hidden] {
-  display: none;
+  &[data-hypersearch-hidden] {
+    display: none;
+  }
 }
 
 .hypersearch-result {
@@ -33,7 +39,6 @@
 
   &:hover .hypersearch-opts {
     opacity: 1;
-    left: calc(100%);
     scale: 1;
 
     & div {
@@ -47,6 +52,9 @@
 }
 
 .hypersearch-opts {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -56,7 +64,7 @@
 
   /* initial transition state */
   opacity: 0;
-  left: calc(100% - 1rem);
+  left: 100%;
   scale: 0.85;
 
   transition: all var(--spring-easing) var(--spring-duration);
@@ -86,8 +94,8 @@
       border: none;
       margin: 0;
       padding: 0;
-      width: 32px;
-      height: 32px;
+      width: 26px;
+      height: 26px;
       cursor: pointer;
       transition: all var(--spring-easing) 0.25s;
 
@@ -104,7 +112,6 @@
   &:hover,
   &:has(button:focus) {
     opacity: 1;
-    left: calc(100%);
     scale: 1;
 
     & div {
