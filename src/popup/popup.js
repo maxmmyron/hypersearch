@@ -4,10 +4,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 const ids = ["streamlining-definitions", "streamlining-questions", "streamlining-results", "streamlining-news"];
 
-id.forEach((id) => {
+ids.forEach((id) => {
   document.getElementById(id).addEventListener("click", async (e) => {
-    e.target.checked = !e.target.checked;
-    const val = e.target.value;
+    const val = Number.parseInt(e.target.value);
 
     const res = await browser.storage.local.get("hiddenCards");
     let hiddenCards = res.hiddenCards || 0;
@@ -23,14 +22,6 @@ id.forEach((id) => {
     let tabs = await browser.tabs.query({ active: true, currentWindow: true });
     browser.tabs.sendMessage(tabs[0].id, { type: "update_hidden_cards", payload: hiddenCards });
   });
-});
-
-document.getElementById("streamlining-definitions").addEventListener("click", (e) => {
-  e.target.checked = !e.target.checked;
-  if(e.target.checked) {
-    browser.storage.local.set({streamliningDefinitions: true});
-  }
-
 });
 
 /**
