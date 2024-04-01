@@ -323,9 +323,9 @@ const hideCards = (types) => {
  * @param {number} types a bitmask of card types to unhide
  */
 const unhideCards = (types) => {
-  // iterate through each bit in the types bitmask and unhide the card type if it exists
+  // iterate through each bit in the types bitmask and unhide the card type if it does NOT exist in the bitmask
   for (let i = 0; i < 32; i++) {
-    if (types & (1 << i) && cardMap.has(1 << i)) {
+    if (!(types & (1 << i)) && cardMap.has(1 << i)) {
       const query = cardMap.get(1 << i) + "[data-hypersearch-hidden]";
       const cards = Array.from(document.querySelectorAll(query));
 
