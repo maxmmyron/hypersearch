@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <link rel="stylesheet" href="./popup.css">
+</head>
+<body>
+  <div id="grid">
+    <main>
+      <header id="domain-header">
+        <h2>Hidden Domains</h2>
+        <hr />
+      </header>
+      <main id="domain-main"></main>
+    </main>
+    <footer>
+      <picture>
+        <source srcset="/assets/icons/hypersearch_light-128.png" media="(prefers-color-scheme: light)">
+        <source srcset="/assets/icons/hypersearch_dark-128.png" media="(prefers-color-scheme: dark)">
+        <img src="/assets/icons/hypersearch_light-128.png" width="65" height="65" alt="hypersearch logo" />
+      </picture>
+      <div id="footer-prose">
+        <header>
+          <h1>Hypersearch</h1>
+          <hr />
+          <span>v1.0</span>
+        </header>
+        <div>
+          <p>by <a href="https://mmyron.com/" target="_blank">Max Myron</a></p>
+          <button popovertarget="credits">credits</button>
+          <!-- <button popovertarget="settings">settings</button> -->
+        </div>
+      </div>
+    </footer>
+  </div>
+  <div popover id="credits">
+    <header>
+      <h2>Fonts</h2>
+      <hr />
+      <button class="button close-button" popovertarget="credits" popovertargetaction="hide">
+        <picture>
+          <source srcset="/assets/close_light.svg" media="(prefers-color-scheme: light)">
+          <source srcset="/assets/close_dark.svg" media="(prefers-color-scheme: dark)">
+          <img src="/assets/close_light.svg" alt="Close" />
+        </picture>
+      </button>
+    </header>
+    <main>
+      <p>Vela Sans</p>
+      <a href="https://www.behance.net/gallery/118694463/Vela-Sans-Free-font-family?locale=en_US" target="_blank">(source)</a>
+    </main>
+  </div>
+  <div popover id="settings">
+    <header>
+      <h2>Settings</h2>
+      <hr />
+      <button class="button close-button" popovertarget="settings" popovertargetaction="hide">
+        <picture>
+          <source srcset="/assets/close_light.svg" media="(prefers-color-scheme: light)">
+          <source srcset="/assets/close_dark.svg" media="(prefers-color-scheme: dark)">
+          <img src="/assets/close_light.svg" alt="Close" />
+        </picture>
+      </button>
+    </header>
+    <main>
+      <!-- <div class="button-column">
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">inline images</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">inline video</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">related searches</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">related questions</p>
+        </div>
+      </div>
+      <div class="button-column">
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">shopping</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">knowledge graphs</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">featured snippets</p>
+        </div>
+        <div class="labeled-option">
+          <button class="button button-default toggled"></button>
+          <p class="label">definitions</p>
+        </div>
+      </div> -->
+    </main>
+  </div>
+
+  <!--template HTML for domain container-->
+  <template id="domain-template">
+    <article class="domain-container">
+      <p class="domain"></p>
+      <div class="domain-settings">
+        <button class="button remove-button">
+          <picture>
+            <source srcset="/assets/trash_light.svg" media="(prefers-color-scheme: light)">
+            <source srcset="/assets/trash_dark.svg" media="(prefers-color-scheme: dark)">
+            <img src="/assets/trash_light.svg" alt="Delete" />
+          </picture>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <script src="../content/polyfill.js"></script>
+  <script src="./popup.js"></script>
+</body>
+</html>

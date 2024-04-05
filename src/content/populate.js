@@ -55,32 +55,20 @@ window.addEventListener("load", async () => {
  */
 const hideResults = (hiddenDomains) => {
   Array.from(document.querySelectorAll("div.g[data-hypersearch-opts]:not([data-hypersearch-hidden])")).forEach((result) => {
-    console.log(result);
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(hiddenDomains.includes(href)) {
       result.classList.add("hypersearch-result-closing");
       result.setAttribute("data-hypersearch-hidden", "true");
-      setTimeout(() => {
-        result.style.display = "none";
-        result.classList.remove("hypersearch-result-closing");
-      }, 300);
     }
   });
 };
 
 const unhideResults = (hiddenDomains) => {
   Array.from(document.querySelectorAll("div.g[data-hypersearch-opts][data-hypersearch-hidden]")).forEach((result) => {
-    console.log(result);
     const href = new URL(result.querySelector("a").href).hostname;
 
     if(!hiddenDomains.includes(href)) {
-      if (result.classList.contains("hypersearch-result")) {
-        result.style.display = "grid";
-      } else {
-        result.style.display = "block";
-      }
-
       result.removeAttribute("data-hypersearch-hidden");
     }
   });
@@ -123,34 +111,28 @@ const parseResults = () => {
     }
   });
 
-  results.forEach(({type, result, optContainer, href}) => {
+  results.forEach(async ({type, result, optContainer, href}) => {
     result.setAttribute("data-hypersearch-opts", "true");
 
-    const hideButton = document.createElement("button");
-    hideButton.classList.add("hypersearch-opt");
-    hideButton.setAttribute("data-hypersearch-action", "hide");
-    hideButton.setAttribute("tabindex", "0");
-    hideButton.addEventListener("click", () => {
+    // fetch the template and inject it into the result element
+    const res = await fetch(chrome.runtime.getURL('/src/content/hypersearch-template.html'));
+    const template = await res.text();
+    optContainer.insertAdjacentHTML("beforeend", template);
+
+    // set the theme of the options container
+    const opts = optContainer.querySelector(".hypersearch-opts");
+    opts.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
+
+    optContainer.querySelector("[data-hypersearch-action=hide]").addEventListener("click", () => {
       addHiddenDomain(href).then(() => hideResults(href));
     });
 
-    const pinButton = document.createElement("button");
-    pinButton.classList.add("hypersearch-opt");
-    pinButton.setAttribute("data-hypersearch-action", "pin");
-    pinButton.setAttribute("tabindex", "0");
-    pinButton.addEventListener("click", () => {
+    optContainer.querySelector("[data-hypersearch-action=pin]").addEventListener("click", () => {
       addPinnedDomain(href).then(() => { /** TODO: implement pinResults(href) */});
     });
 
-    const el = document.createElement("div");
-    el.classList.add("hypersearch-opts");
-    el.setAttribute("data-hypersearch-theme", darkTheme ? "dark" : "light");
-    el.appendChild(hideButton);
-    el.appendChild(pinButton);
-
-    optContainer.appendChild(el);
-    // update from display: block -> grid
-    optContainer.style.display = "grid";
+    // remove any set display property
+    optContainer.style.display = null;
     optContainer.classList.add("hypersearch-result");
   });
 };
